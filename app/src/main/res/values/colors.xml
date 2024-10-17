@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="splash">#97B9F8</color>
+
+    <color name="azulA1">#4584ED</color>
+    <color name="celesteA1">#89B5F6</color>
+    <color name="celesteA2">#CFE4FD</color>
+    <color name="plomoA1">#F4F9FC</color>
+    <color name="plomoA2">#F9FFFF</color>
+    <color name="plomoTex">#95A2AB</color>
+    <color name="lavender">#8692f7</color>
+
+
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="colorAccent">#FF4081</color>
+</resources>

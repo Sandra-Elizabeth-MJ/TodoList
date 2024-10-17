@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">TodoList</string>
+
+    <string name="logo_de_la_empresa">Logo de la empresa</string>
+    <string name="nomemp">Nombre de la empresa</string>
+    <string name="tareas">Tareas</string>
+    <string name="calendario">Calendario</string>
+    <string name="mios">Mios</string>
+    <!-- string de Menu de 3 puntos-->
+    <string name="administrar_categor_as">Administrar categorías</string>
+    <string name="buscar">Buscar</string>
+    <string name="ordenar_tareas">Ordenar tareas</string>
+    <string name="imprimir">Imprimir</string>
+    <string name="actualice_a_pro">Actualice a PRO</string>
+    <string name="todas">Todas</string>
+    <string name="trabajo">Trabajo</string>
+    <string name="personal">Personal</string>
+    <string name="lista_de_deseos">Lista de deseos</string>
+    <string name="cumplea_os">Cumpleaños</string>
+    <string name="marcar_como_hecho">marcar como hecho</string>
+    <string name="tarea_duplicada">Tarea duplicada</string>
+    <string name="empezar_a_enfocar">Empezar a enfocar</string>
+    <string name="compartir">Compartir</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="hora_y_recordatorio">Hora y Recordatorio</string>
+    <string name="agregar_subtarea">Agregar subtarea</string>
+    <string name="fecha_de_vencimiento">Fecha de vencimiento</string>
+    <string name="repetir_tarea">Repetir tarea</string>
+    <string name="notas">Notas</string>
+    <string name="adjunto_archivo">Adjunto archivo</string>
+    <string name="nueva_tarea">Nueva Tarea:</string>
+    <string name="fecha">Fecha:</string>
+    <string name="hora">Hora:</string>
+    <string name="mm_dd_aaaa">MM/dd/aaaa</string>
+    <string name="hh_mm_tt">hh:mm tt</string>
+    <string name="password">Password</string>
+    <string name="registrarse">Registrarse</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="ya_eres_usuario_iniciar_sesi_n">¿Ya eres usuario? Iniciar sesión</string>
+    <string name="login">Login</string>
+    <string name="a_n_no_est_s_registrado_reg_strate">¿Aún no estás registrado? Regístrate</string>
+    <string name="btf_add_nueva_tarea">Añadir nueva tarea</string>
+    <string name="cerrar_sesion">Cerrar Sesión</string>
+
+</resources>

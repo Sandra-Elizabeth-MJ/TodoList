@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:layout_margin="10dp"
+    android:background="@color/plomoA1">
+
+    <Spinner
+        android:id="@+id/spinnerCategoriesAlert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nueva_tarea"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etnuevaTarea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/splash"
+        android:layout_marginTop="20dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="17dp">
+
+        <ImageView
+            android:id="@+id/ic_addFecha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_calendario_tarea"
+            android:contentDescription="@string/fecha"
+            android:layout_marginEnd="8dp"
+            app:tint="@color/splash" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fecha"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            />
+        <!--Ingresar la fecha-->
+        <EditText
+            android:id="@+id/etfecha"
+            android:layout_width="match_parent"
+            android:hint="@string/mm_dd_aaaa"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp" />
+    </LinearLayout>
+    <!-- Nuevo LinearLayout horizontal con ícono y texto HORA Y RECORDATORIO-->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/splash"
+        android:layout_marginTop="20dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="17dp"
+        >
+
+        <ImageView
+            android:id="@+id/ic_addhora"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_time"
+            android:contentDescription="@string/hora"
+            app:tint="@color/splash"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hora"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            />
+        <!--Ingresar la hora-->
+        <EditText
+            android:id="@+id/ethora"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hh_mm_tt"
+            android:layout_margin="8dp" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,26 @@
+<!-- res/layout/fragment_calendario.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="0dp"
+        android:background="?attr/colorPrimary">
+
+        <CalendarView
+            android:id="@+id/calendario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="0dp" />
+    </androidx.cardview.widget.CardView>
+
+    <ListView
+        android:id="@+id/lista_tareas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

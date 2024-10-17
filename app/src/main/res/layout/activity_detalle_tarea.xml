@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/plomoA2"
+    tools:context=".activities.ActivityDetalleTarea">
+
+    <!-- Toolbar -->
+
+    <!-- Spinner para las categorías -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_dettalle_tarea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/plomoA2"
+        android:layout_marginTop="0dp"
+        android:elevation="3dp"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme" />
+
+    <Spinner
+        android:id="@+id/spinnerCategories"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Campo de texto con información de detalles -->
+    <EditText
+        android:id="@+id/tvDetailInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:background="@android:color/transparent"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Contenedor para los ítems adicionales -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="50dp">
+
+        <!-- Agregar Subtarea -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/iconAddSubtask"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_add"
+                android:contentDescription="@string/agregar_subtarea"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/agregar_subtarea"
+                android:textSize="16sp"
+                android:textColor="@color/azulA1"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
+
+        <!-- Fecha de Vencimiento -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="17dp">
+
+            <ImageView
+                android:id="@+id/iconFechaVen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_calendario_tarea"
+                android:contentDescription="@string/fecha_de_vencimiento"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/fecha_de_vencimiento"
+                android:textColor="#525356"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/fechavencimiento_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="65dp"
+                android:background="@drawable/boton_categoria"
+                android:padding="4dp"
+                android:textAlignment="center"
+                android:hint="@string/mm_dd_aaaa"
+                android:textColor="#525356"
+                android:textSize="15sp"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
+
+        <!-- Hora y Recordatorio -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="17dp">
+
+            <ImageView
+                android:id="@+id/iconHoraRecor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_time"
+                android:contentDescription="@string/hora_y_recordatorio"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hora_y_recordatorio"
+                android:textColor="#525356"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/hora_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="85dp"
+                android:background="@drawable/boton_categoria"
+                android:padding="4dp"
+                android:textAlignment="center"
+                android:hint="@string/hh_mm_tt"
+                android:textColor="#525356"
+                android:textSize="15sp"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
+
+        <!-- Repetir Tarea -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="17dp">
+
+            <ImageView
+                android:id="@+id/iconRepTarea"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_repetir"
+                android:contentDescription="@string/repetir_tarea"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/repetir_tarea"
+                android:textColor="#525356"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
+
+        <!-- Notas -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="17dp">
+
+            <ImageView
+                android:id="@+id/iconNotas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_tareas"
+                android:contentDescription="@string/notas"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/notas"
+                android:textColor="#525356"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
+
+        <!-- Archivo Adjunto -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="17dp">
+
+            <ImageView
+                android:id="@+id/iconArchiAd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_add_archivo"
+                android:contentDescription="@string/adjunto_archivo"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/adjunto_archivo"
+                android:textColor="#525356"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
+
+    </LinearLayout>
+
+    <!-- Botón flotante -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_send"
+        app:backgroundTint="@color/celesteA1"/>
+
+</LinearLayout>

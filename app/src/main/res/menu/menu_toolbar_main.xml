@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/cerrar_sesion"
+        android:title="@string/cerrar_sesion"
+        android:icon="@drawable/ic_logout"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom" />
+    <!--Administrar_categorías
+    <item
+        android:id="@+id/action_manage_categories"
+        android:title="@string/administrar_categor_as"
+        android:orderInCategory="1"
+        app:showAsAction="never" />
+
+     Buscar
+    <item
+        android:id="@+id/action_search"
+        android:title="@string/buscar"
+        android:orderInCategory="2"
+        app:showAsAction="never" />
+
+    Ordenar tareas
+    <item
+        android:id="@+id/action_sort_tasks"
+        android:title="@string/ordenar_tareas"
+        android:orderInCategory="3"
+        app:showAsAction="never" />
+
+    Imprimir
+    <item
+        android:id="@+id/action_print"
+        android:title="@string/imprimir"
+        android:orderInCategory="4"
+        app:showAsAction="never" />
+
+    Actualice a PRO
+    <item
+        android:id="@+id/action_upgrade_pro"
+        android:title="@string/actualice_a_pro"
+        android:orderInCategory="5"
+        app:showAsAction="never" />-->
+</menu>
