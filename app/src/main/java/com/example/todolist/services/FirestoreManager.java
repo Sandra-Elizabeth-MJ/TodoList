@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.example.todolist.entities.Tarea;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -78,12 +79,18 @@ public class FirestoreManager {
         listeners.add(listener);
     }
 
-    public void createTarea(Tarea tarea, FirestoreCallback<Void> callback) {
+    public void createTarea(Tarea tarea, FirestoreCallback<String> callback) {
         String userId = auth.getCurrentUser().getUid();
-        db.collection("user").document(userId)
+        DocumentReference newTareaRef = db.collection("user").document(userId)
                 .collection("tareas")
-                .add(tarea)
-                .addOnSuccessListener(documentReference -> callback.onSuccess(null))
+                .document();  // Esto genera un nuevo ID inmediatamente
+
+        // Asigna el ID generado a la tarea
+        String newTareaId = newTareaRef.getId();
+        tarea.setId(newTareaId);
+
+        newTareaRef.set(tarea)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(newTareaId))
                 .addOnFailureListener(callback::onError);
     }
 

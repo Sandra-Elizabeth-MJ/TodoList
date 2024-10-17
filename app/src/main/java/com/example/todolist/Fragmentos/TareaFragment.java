@@ -214,10 +214,15 @@ public class TareaFragment extends Fragment {
         Tarea nuevaTarea = new Tarea(nombre, fecha, hora, categoriaSeleccionada);
         nuevaTarea.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
-        firestoreManager.createTarea(nuevaTarea, new FirestoreManager.FirestoreCallback<Void>() {
+        firestoreManager.createTarea(nuevaTarea, new FirestoreManager.FirestoreCallback<String>() {
             @Override
-            public void onSuccess(Void result) {
-                Toast.makeText(getContext(), "Tarea creada con éxito", Toast.LENGTH_SHORT).show();
+            public void onSuccess(String newTareaId) {
+                Toast.makeText(getContext(), "Tarea creada con éxito. ID: " + newTareaId, Toast.LENGTH_SHORT).show();
+                // Aquí puedes actualizar tu lista local si es necesario
+                nuevaTarea.setId(newTareaId);
+                tareaInfoList.add(nuevaTarea);
+                //adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+                cargarTareas();
             }
 
             @Override
