@@ -158,27 +158,6 @@ public class ActivityDetalleTarea extends AppCompatActivity {
                     }
                 });
     }
-
-    /*
-    private void cargarDetallesTarea(String tareaId) {
-        firestore.collection("user").document(userId)
-                .collection("tareas").document(tareaId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        tvDetailInfo.setText(documentSnapshot.getString("nombre"));
-                        fechavencimiento_tv.setText(documentSnapshot.getString("fecha"));
-                        hora_tv.setText(documentSnapshot.getString("hora"));
-
-                        String categoria = documentSnapshot.getString("categoria");
-                        int posicion = categorias.indexOf(categoria);
-                        if (posicion != -1) {
-                            spinnerCategories.setSelection(posicion);
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> Toast.makeText(ActivityDetalleTarea.this, "Error al cargar la tarea", Toast.LENGTH_SHORT).show());
-    }*/
     private void cargarDetallesTarea(String tareaId) {
         firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
             @Override
@@ -236,16 +215,6 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             tareaRef = firestore.collection("user").document(userId)
                     .collection("tareas").document();
         }
-        /*
-
-        tareaRef.set(tareaMap)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(ActivityDetalleTarea.this, "Tarea guardada con éxito", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);
-                    finish();
-                })
-                .addOnFailureListener(e -> Toast.makeText(ActivityDetalleTarea.this, "Error al guardar la tarea", Toast.LENGTH_SHORT).show());
-         */
         Tarea tareaActualizada = new Tarea(tareaId, nombre, fecha, hora, categoriaSeleccionada, userId);
 
         firestoreManager.updateTarea(tareaActualizada, new FirestoreManager.FirestoreCallback<Void>() {

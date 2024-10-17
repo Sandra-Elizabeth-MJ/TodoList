@@ -88,6 +88,7 @@ public class TareaFragment extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tarea, container, false);
         linearLayoutCategorias = rootView.findViewById(R.id.linearLayoutCategorias);
+
         firestoreManager = FirestoreManager.getInstance(requireContext());
         // Inicializar Firebase
         firestore = FirebaseFirestore.getInstance();
@@ -231,44 +232,49 @@ public class TareaFragment extends Fragment {
             }
         });
     }
-
     private void guardarNuevaCategoria(String nombreCategoria) {
-        Map<String, Object> categoria = new HashMap<>();
-        categoria.put("nombre", nombreCategoria);
-        categoria.put("userId", userId);
+        firestoreManager.createCategoria(nombreCategoria, new FirestoreManager.FirestoreCallback<String>() {
+            @Override
+            public void onSuccess(String newCategoriaId) {
+                Toast.makeText(requireActivity(), "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
+                // La UI se actualizará automáticamente gracias al SnapshotListener en getCategorias
+            }
 
-        firestore.collection("user").document(userId)
-                .collection("categorias")
-                .add(categoria)
-                .addOnSuccessListener(documentReference -> {
-                    categorias.add(nombreCategoria);
-                    spinnerAdapter.notifyDataSetChanged();
-                    Toast.makeText(requireActivity(), "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
-                    cargarCategorias();
-                })
-                .addOnFailureListener(e -> Toast.makeText(requireActivity(), "Error al crear categoría", Toast.LENGTH_SHORT).show());
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(requireActivity(), "Error al crear categoría: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void cargarCategorias() {
         if (spinnerAdapter == null) {
             initializeSpinnerAdapter();
         }
-        firestore.collection("user").document(userId)
-                .collection("categorias")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    categorias.clear();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        String nombreCategoria = document.getString("nombre");
-                        if (nombreCategoria != null) {
-                            categorias.add(nombreCategoria);
-                        }
-                    }
-                    categorias.add("Crear nueva categoría");
-                    spinnerAdapter.notifyDataSetChanged();
-                    agregarBotonesCategorias(categorias);
-                })
-                .addOnFailureListener(e -> Toast.makeText(requireActivity(), "Error al cargar categorías", Toast.LENGTH_SHORT).show());
+        firestoreManager.getCategorias(new FirestoreManager.FirestoreCallback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> result) {
+                categorias.clear();
+                categorias.addAll(result);
+                categorias.add("Crear nueva categoría");
+                spinnerAdapter.notifyDataSetChanged();
+                actualizarBotonesCategorias();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(requireActivity(), "Error al cargar categorías: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void actualizarBotonesCategorias() {
+        linearLayoutCategorias.removeAllViews();
+        agregarBotonTodasLasCategorias();
+        for (String categoria : categorias) {
+            if (!categoria.equals("Crear nueva categoría")) {
+                agregarBotonCategoria(categoria);
+            }
+        }
     }
     private void agregarBotonesCategorias(List<String> categorias) {
         linearLayoutCategorias.removeAllViews();
@@ -396,7 +402,8 @@ public class TareaFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        cargarTareas(); // Recargar datos solo cuando se regrese al fragmento
+        cargarTareas();
+        cargarCategorias();// Recargar datos solo cuando se regrese al fragmento
     }
 
     private void setUpRecyclerView() {
@@ -469,5 +476,6 @@ public class TareaFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         firestoreManager.removeListeners();
+
     }
 }

@@ -118,6 +118,7 @@ public class FirestoreManager {
         String userId = auth.getCurrentUser().getUid();
         ListenerRegistration listener = db.collection("user").document(userId)
                 .collection("categorias")
+                .whereEqualTo("userId", userId)  // Asegura que solo obtenemos las categorías del usuario actual
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
                         callback.onError(e);
@@ -125,21 +126,30 @@ public class FirestoreManager {
                     }
                     List<String> categorias = new ArrayList<>();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        categorias.add(document.getString("nombre"));
+                        String nombre = document.getString("nombre");
+                        if (nombre != null && !categorias.contains(nombre)) {
+                            categorias.add(nombre);
+                        }
                     }
                     callback.onSuccess(categorias);
                 });
         listeners.add(listener);
     }
 
-    public void createCategoria(String categoria, FirestoreCallback<Void> callback) {
+    public void createCategoria(String categoria, FirestoreCallback<String> callback) {
         String userId = auth.getCurrentUser().getUid();
         Map<String, Object> categoriaMap = new HashMap<>();
         categoriaMap.put("nombre", categoria);
-        db.collection("user").document(userId)
+        categoriaMap.put("userId", userId);
+
+        DocumentReference newCategoriaRef = db.collection("user").document(userId)
                 .collection("categorias")
-                .add(categoriaMap)
-                .addOnSuccessListener(documentReference -> callback.onSuccess(null))
+                .document();
+
+        String newCategoriaId = newCategoriaRef.getId();
+
+        newCategoriaRef.set(categoriaMap)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(newCategoriaId))
                 .addOnFailureListener(callback::onError);
     }
 
