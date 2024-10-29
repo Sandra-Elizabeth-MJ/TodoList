@@ -50,7 +50,7 @@ public class ActivityDetalleTarea extends AppCompatActivity {
     private String tareaId;
     private FloatingActionButton fab;
 
-    private FirebaseFirestore firestore;
+    //private FirebaseFirestore firestore;
     private FirebaseAuth auth;
     private String userId;
     private FirestoreManager firestoreManager;
@@ -63,7 +63,7 @@ public class ActivityDetalleTarea extends AppCompatActivity {
         firestoreManager = FirestoreManager.getInstance(this);
 
         // Initialize Firebase
-        firestore = FirebaseFirestore.getInstance();
+        //firestore = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         userId = auth.getCurrentUser().getUid();
 
