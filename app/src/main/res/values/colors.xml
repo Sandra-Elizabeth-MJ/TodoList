@@ -19,4 +19,8 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="grayBackground">#F5F5F5</color>
+    <color name="blueBackground">#4B89DC</color>
+    <color name="redBackground">#E9573F</color>
 </resources>

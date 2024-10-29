@@ -31,6 +31,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -41,6 +42,7 @@ import com.example.todolist.activities.ActivityLogin;
 import com.example.todolist.adapters.CategoriaAdapter;
 import com.example.todolist.adapters.TareaAdapter;
 import com.example.todolist.entities.Categorias;
+import com.example.todolist.entities.SwipeHelper;
 import com.example.todolist.entities.Tarea;
 import com.example.todolist.services.ClienteAPI;
 import com.example.todolist.services.FirestoreManager;
@@ -412,6 +414,11 @@ public class TareaFragment extends Fragment {
 
         adaptar = new TareaAdapter(tareaInfoList);
         rvTareasInfo.setAdapter(adaptar);
+
+        // Configurar el SwipeHelper
+        SwipeHelper swipeHelper = new SwipeHelper(adaptar, requireContext(), firestoreManager);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeHelper);
+        itemTouchHelper.attachToRecyclerView(rvTareasInfo);
 
         adaptar.setOnTareaClickListener(tarea -> {
             Intent intent = new Intent(requireActivity(), ActivityDetalleTarea.class);
