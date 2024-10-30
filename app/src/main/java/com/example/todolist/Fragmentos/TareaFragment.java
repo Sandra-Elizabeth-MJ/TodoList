@@ -72,7 +72,6 @@ public class TareaFragment extends Fragment {
     private static final int REQUEST_CODE_ACTUALIZAR_TAREA = 1;
     private View rootView;
     private Button botonSeleccionado = null;
-    private Toolbar toolbar;
 
     private FirebaseFirestore firestore;
     private FirebaseAuth auth;
@@ -101,12 +100,12 @@ public class TareaFragment extends Fragment {
        cargarTareas();
 
 
-        // Inicializar el Toolbar
-        toolbar = rootView.findViewById(R.id.toolbar);
+        /*Inicializar el Toolbar
+        Toolbar toolbar = rootView.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         // Inflar el menú
         setHasOptionsMenu(true);
-        // inicializar la clase de sincronizacion
+        // inicializar la clase de sincronizacion*/
 
 
         return rootView;
@@ -449,7 +448,7 @@ public class TareaFragment extends Fragment {
                 }, hour, minute, true);
         timePickerDialog.show();
     }
-    //metodos para cerrar sesion
+    /*metodos para cerrar sesion
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflar el menú
@@ -471,7 +470,7 @@ public class TareaFragment extends Fragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
+    }*/
     @Override
     public void onDestroy() {
         super.onDestroy();
