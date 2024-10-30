@@ -26,6 +26,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -36,8 +37,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.MainActivity;
 import com.example.todolist.R;
+import com.example.todolist.activities.ActivityAdministarCat;
 import com.example.todolist.activities.ActivityDetalleTarea;
 import com.example.todolist.activities.ActivityLogin;
+import com.example.todolist.activities.ActivityTareaCompletada;
 import com.example.todolist.adapters.CategoriaAdapter;
 import com.example.todolist.adapters.TareaAdapter;
 import com.example.todolist.entities.Categorias;
@@ -100,12 +103,14 @@ public class TareaFragment extends Fragment {
        cargarTareas();
 
 
-        /*Inicializar el Toolbar
+        //Inicializar el Toolbar
         Toolbar toolbar = rootView.findViewById(R.id.toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        if (getActivity() != null) {
+            ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        }
         // Inflar el menú
         setHasOptionsMenu(true);
-        // inicializar la clase de sincronizacion*/
+        // inicializar la clase de sincronizacion
 
 
         return rootView;
@@ -191,25 +196,6 @@ public class TareaFragment extends Fragment {
 
         builder.show();
     }
-    //guarda las tareas en el firestore
-    /*
-    private void crearTarea(String nombre, String fecha, String hora, String categoriaSeleccionada) {
-        Map<String, Object> tarea = new HashMap<>();
-        tarea.put("nombre", nombre);
-        tarea.put("fecha", fecha);
-        tarea.put("hora", hora);
-        tarea.put("categoria", categoriaSeleccionada);
-        tarea.put("userId", userId);
-
-        firestore.collection("user").document(userId)
-                .collection("tareas")
-                .add(tarea)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(getContext(), "Tarea creada con éxito", Toast.LENGTH_SHORT).show();
-                    cargarTareas(); // Recargar todas las tareas después de crear una nueva
-                })
-                .addOnFailureListener(e -> Toast.makeText(requireActivity(), "Error al crear tarea", Toast.LENGTH_SHORT).show());
-    }*/
     private void crearTarea(String nombre, String fecha, String hora, String categoriaSeleccionada) {
         Tarea nuevaTarea = new Tarea(nombre, fecha, hora, categoriaSeleccionada);
         nuevaTarea.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -315,29 +301,7 @@ public class TareaFragment extends Fragment {
 
         linearLayoutCategorias.addView(button);
     }
-    //Recupera todas las tareas de Firestore y las guarda en la lista tareaInfoList. Luego, actualiza la vista del RecyclerView.
-    /*
-    private void cargarTareas() {
-        firestore.collection("user").document(userId)
-                .collection("tareas")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    tareaInfoList.clear(); // Limpiar la lista maestra
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Tarea tarea = new Tarea(
-                                document.getString("nombre"),
-                                document.getId(),
-                                document.getString("fecha"),
-                                document.getString("hora"),
-                                document.getString("categoria")
-                        );
-                        tareaInfoList.add(tarea);
-                    }
-                    adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
-                    cargarCategorias(); // Cargar categorías después de tener las tareas
-                })
-                .addOnFailureListener(e -> Log.e("Firestore", "Error al cargar tareas", e));
-    }*/
+
     private void cargarTareas() {
         firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
             @Override
@@ -448,9 +412,9 @@ public class TareaFragment extends Fragment {
                 }, hour, minute, true);
         timePickerDialog.show();
     }
-    /*metodos para cerrar sesion
+    //metodos para menut del toolbar
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         // Inflar el menú
         inflater.inflate(R.menu.menu_toolbar_main, menu);
         super.onCreateOptionsMenu(menu, inflater);
@@ -458,19 +422,30 @@ public class TareaFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.cerrar_sesion) {
-            // Cierra la sesión
-            FirebaseAuth.getInstance().signOut();
-            Toast.makeText(getActivity(), "Sesión cerrada", Toast.LENGTH_SHORT).show();
+        Intent intent;
+        int itemId = item.getItemId();
 
-            // Redirige a la pantalla de login
-            Intent intent = new Intent(getActivity(), ActivityLogin.class);
+        if (itemId == R.id.action_admin_cat) {
+            // Redirige a la actividad de administración de categorías
+            intent = new Intent(getActivity(), ActivityAdministarCat.class);
             startActivity(intent);
-            getActivity().finish();  // Finaliza la actividad actual
+            Toast.makeText(getActivity(), "Administrar categorías", Toast.LENGTH_SHORT).show();
+            return true;
+
+        } else if (itemId == R.id.action_search) {
+            Toast.makeText(getActivity(), "Buscar", Toast.LENGTH_SHORT).show();
+            return true;
+
+        } else if (itemId == R.id.action_tareas_com) {
+            // Redirige a la actividad de tareas completadas
+            intent = new Intent(getActivity(), ActivityTareaCompletada.class);
+            startActivity(intent);
+            Toast.makeText(getActivity(), "Tareas completadas", Toast.LENGTH_SHORT).show();
             return true;
         }
+
         return super.onOptionsItemSelected(item);
-    }*/
+    }
     @Override
     public void onDestroy() {
         super.onDestroy();

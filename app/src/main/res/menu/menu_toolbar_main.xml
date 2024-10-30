@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!--Administrar_categorías-->
+
     <item
-        android:id="@+id/action_manage_categories"
+        android:id="@+id/action_admin_cat"
         android:title="@string/administrar_categor_as"
         android:orderInCategory="1"
         app:showAsAction="never" />
@@ -17,7 +17,7 @@
 
 
     <item
-        android:id="@+id/action_sort_tasks"
+        android:id="@+id/action_tareas_com"
         android:title="@string/tareas_completadas"
         android:orderInCategory="3"
         app:showAsAction="never" />
