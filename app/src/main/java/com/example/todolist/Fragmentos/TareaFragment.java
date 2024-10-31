@@ -90,6 +90,7 @@ public class TareaFragment extends Fragment {
     private boolean isLoading = false;
     private boolean hasMoreTareas = true;
     private ProgressBar progressBar;
+    private String currentCategoria = "Todas"; // Categoría por defecto
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -101,10 +102,15 @@ public class TareaFragment extends Fragment {
         firestore = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         userId = auth.getCurrentUser().getUid();
+
+        // Inicializar variables de paginación
+        isLoading = false;
+        hasMoreTareas = true;
+        currentCategoria = "Todas";
+
         initializeSpinnerAdapter();
         setUpRecyclerView();
         lanzarAddTarea();
-        // Solo cargar tareas en la creación inicial
         cargarTareas();
 
         //Inicializar el Toolbar
@@ -118,6 +124,52 @@ public class TareaFragment extends Fragment {
 
         //createInitialTasks();
         return rootView;
+    }
+    private void filtrarTareasPorCategoria(String categoria) {
+        currentCategoria = categoria;
+        tareaInfoList.clear();
+        adaptar.actualizarListaTareas(new ArrayList<>());
+        hasMoreTareas = true;
+        cargarTareasPaginadas(true); // true para reiniciar paginación
+    }
+    private void cargarTareasPaginadas(boolean reiniciarPaginacion) {
+        if (isLoading || !hasMoreTareas) return;
+
+        showLoading();
+        isLoading = true;
+
+        firestoreManager.getTareasPaginadas(currentCategoria, reiniciarPaginacion,
+                new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+                    @Override
+                    public void onSuccess(List<Tarea> result) {
+                        hideLoading();
+                        if (result.isEmpty()) {
+                            hasMoreTareas = false;
+                            if (reiniciarPaginacion && tareaInfoList.isEmpty()) {
+                                // Mostrar mensaje si no hay tareas en la categoría
+                                Toast.makeText(requireContext(),
+                                        "No hay tareas en esta categoría",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            if (reiniciarPaginacion) {
+                                tareaInfoList.clear();
+                            }
+                            tareaInfoList.addAll(result);
+                            adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+                        }
+                        isLoading = false;
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        hideLoading();
+                        isLoading = false;
+                        Toast.makeText(requireContext(),
+                                "Error al cargar tareas: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
     private void showLoading() {
         progressBar.setVisibility(View.VISIBLE);
@@ -381,53 +433,52 @@ public class TareaFragment extends Fragment {
     private void cargarTareas() {
         showLoading();
         isLoading = true;
-        firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
-            @Override
-            public void onSuccess(List<Tarea> result) {
-                hideLoading();
-                tareaInfoList.clear();
-                tareaInfoList.addAll(result);
-                adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
-                isLoading = false;
-                hasMoreTareas = !result.isEmpty();
-                cargarCategorias();
-            }
+        currentCategoria = "Todas"; // Establecemos la categoría inicial
+        tareaInfoList.clear(); // Limpiamos la lista actual
+        adaptar.actualizarListaTareas(new ArrayList<>()); // Limpiamos el adaptador
+        hasMoreTareas = true; // Reiniciamos el flag de paginación
 
-            @Override
-            public void onError(Exception e) {
-                hideLoading();
-                isLoading = false;
-                Toast.makeText(requireContext(), "Error al cargar tareas: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-    private void cargarMasTareas() {
-        if (isLoading) return;
+        // Usamos getTareasPaginadas con reinicio de paginación
+        firestoreManager.getTareasPaginadas(currentCategoria, true,
+                new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+                    @Override
+                    public void onSuccess(List<Tarea> result) {
+                        hideLoading();
+                        if (result.isEmpty()) {
+                            hasMoreTareas = false;
+                            Toast.makeText(requireContext(),
+                                    "No hay tareas pendientes",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            tareaInfoList.addAll(result);
+                            adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+                            hasMoreTareas = true;
+                        }
+                        isLoading = false;
+                        cargarCategorias(); // Cargamos las categorías después de las tareas
 
-        showLoading();
-        isLoading = true;
-        firestoreManager.getNextTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
-            @Override
-            public void onSuccess(List<Tarea> result) {
-                hideLoading();
-                if (result.isEmpty()) {
-                    hasMoreTareas = false;
-                } else {
-                    tareaInfoList.addAll(result);
-                    adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
-                }
-                isLoading = false;
-            }
+                        // Aseguramos que el botón "Todas" esté seleccionado inicialmente
+                        for (int i = 0; i < linearLayoutCategorias.getChildCount(); i++) {
+                            View child = linearLayoutCategorias.getChildAt(i);
+                            if (child instanceof Button) {
+                                Button button = (Button) child;
+                                if (button.getText().toString().equals("Todas")) {
+                                    seleccionarBoton(button);
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
-            @Override
-            public void onError(Exception e) {
-                hideLoading();
-                isLoading = false;
-                Toast.makeText(requireContext(), "Error al cargar más tareas: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    public void onError(Exception e) {
+                        hideLoading();
+                        isLoading = false;
+                        Toast.makeText(requireContext(),
+                                "Error al cargar tareas: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
 
@@ -443,24 +494,29 @@ public class TareaFragment extends Fragment {
         botonNuevo.setBackgroundResource(R.drawable.bnt_categoria);
 
         botonSeleccionado = botonNuevo;
+
+        // Filtrar por la categoría seleccionada
+        String categoria = botonNuevo.getText().toString();
+        filtrarTareasPorCategoria(categoria);
     }
 
-    private void filtrarTareasPorCategoria(String categoria) {
-        List<Tarea> tareasFiltradas;
-        if (categoria.equalsIgnoreCase("Todas")) {
-            tareasFiltradas = new ArrayList<>(tareaInfoList);
-        } else {
-            tareasFiltradas = tareaInfoList.stream()
-                    .filter(tarea -> tarea.getCategoria().equalsIgnoreCase(categoria))
-                    .collect(Collectors.toList());
-        }
 
-        if (tareasFiltradas.isEmpty() && !categoria.equalsIgnoreCase("Todas")) {
-            Toast.makeText(getContext(), "No hay tareas en esta categoría", Toast.LENGTH_SHORT).show();
-        }
-
-        adaptar.actualizarListaTareas(tareasFiltradas);
-    }
+//    private void filtrarTareasPorCategoria(String categoria) {
+//        List<Tarea> tareasFiltradas;
+//        if (categoria.equalsIgnoreCase("Todas")) {
+//            tareasFiltradas = new ArrayList<>(tareaInfoList);
+//        } else {
+//            tareasFiltradas = tareaInfoList.stream()
+//                    .filter(tarea -> tarea.getCategoria().equalsIgnoreCase(categoria))
+//                    .collect(Collectors.toList());
+//        }
+//
+//        if (tareasFiltradas.isEmpty() && !categoria.equalsIgnoreCase("Todas")) {
+//            Toast.makeText(getContext(), "No hay tareas en esta categoría", Toast.LENGTH_SHORT).show();
+//        }
+//
+//        adaptar.actualizarListaTareas(tareasFiltradas);
+//    }
 
 
     private int dpToPx(int dp) {
@@ -471,6 +527,10 @@ public class TareaFragment extends Fragment {
         Button button = new Button(requireContext());
         button.setText("Todas");
         agregarBotonCategoria("Todas");
+        // Seleccionar el botón "Todas" por defecto si no hay ningún botón seleccionado
+        if (botonSeleccionado == null) {
+            seleccionarBoton(button);
+        }
     }
 
     @Override
@@ -478,6 +538,8 @@ public class TareaFragment extends Fragment {
         super.onResume();
         cargarTareas();
         cargarCategorias();// Recargar datos solo cuando se regrese al fragmento
+        filtrarTareasPorCategoria(currentCategoria);
+        cargarCategorias();
     }
 
     private void setUpRecyclerView() {
@@ -493,13 +555,13 @@ public class TareaFragment extends Fragment {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                if (!isLoading && hasMoreTareas && dy > 0) {  // Solo si el scroll es hacia abajo
+                if (!isLoading && hasMoreTareas && dy > 0) {
                     int visibleItemCount = layoutManager.getChildCount();
                     int totalItemCount = layoutManager.getItemCount();
                     int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {  // Cargar cuando falten 4 items
-                        cargarMasTareas();
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {
+                        cargarTareasPaginadas(false); // false para continuar la paginación
                     }
                 }
             }

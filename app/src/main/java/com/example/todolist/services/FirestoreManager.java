@@ -30,7 +30,7 @@ public class FirestoreManager {
     private List<ListenerRegistration> listeners = new ArrayList<>();
     private static final int TAREAS_POR_PAGINA = 10;
     private DocumentSnapshot lastVisible = null;
-
+    private String currentCategoria = null; // Para controlar la categoría actual
     public void getTareas(FirestoreCallback<List<Tarea>> callback) {
         String userId = auth.getCurrentUser().getUid();
         ListenerRegistration listener = db.collection("user").document(userId)
@@ -51,7 +51,50 @@ public class FirestoreManager {
                 });
         listeners.add(listener);
     }
+    // Nuevo método para cargar tareas progresivamente
+    public void getTareasPaginadas(String categoria, boolean reiniciarPaginacion, FirestoreCallback<List<Tarea>> callback) {
+        String userId = auth.getCurrentUser().getUid();
 
+        // Reiniciar paginación si es una nueva categoría o se solicita explícitamente
+        if (reiniciarPaginacion || !categoria.equals(currentCategoria)) {
+            lastVisible = null;
+            currentCategoria = categoria;
+        }
+
+        // Construir la consulta base
+        Query query = db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", false)
+                .orderBy("fecha") // Asegúrate de tener un índice para esta consulta
+                .limit(TAREAS_POR_PAGINA);
+
+        // Agregar filtro por categoría si no es "Todas"
+        if (!categoria.equals("Todas")) {
+            query = query.whereEqualTo("categoria", categoria);
+        }
+
+        // Agregar punto de inicio si no es la primera página
+        if (lastVisible != null) {
+            query = query.startAfter(lastVisible);
+        }
+
+        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<Tarea> tareas = new ArrayList<>();
+            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                Tarea tarea = document.toObject(Tarea.class);
+                tarea.setId(document.getId());
+                tareas.add(tarea);
+            }
+
+            // Actualizar el último documento visible
+            if (!queryDocumentSnapshots.isEmpty()) {
+                lastVisible = queryDocumentSnapshots.getDocuments()
+                        .get(queryDocumentSnapshots.size() - 1);
+            }
+
+            callback.onSuccess(tareas);
+        }).addOnFailureListener(callback::onError);
+    }
     public void getNextTareas(FirestoreCallback<List<Tarea>> callback) {
         if (lastVisible == null) {
             callback.onSuccess(new ArrayList<>());
