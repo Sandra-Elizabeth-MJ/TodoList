@@ -14,16 +14,25 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.todolist.R;
 import com.example.todolist.activities.ActivityLogin;
+import com.example.todolist.entities.Tarea;
+import com.example.todolist.services.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.List;
 
 
 public class UsuarioFragment extends Fragment {
 
     private View rootView;
+    private TextView tvCantidadTareasCompletadas;
+    private TextView tvCantidadTareasPendientes;
+    private FirestoreManager firestoreManager;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -35,16 +44,68 @@ public class UsuarioFragment extends Fragment {
         if (getActivity() != null) {
             ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         }
+
+        // Inicializar FirestoreManager
+        firestoreManager = FirestoreManager.getInstance(requireContext());
+
+        // Inicializar TextViews
+        tvCantidadTareasCompletadas = rootView.findViewById(R.id.tv_cantidad_tc);
+        tvCantidadTareasPendientes = rootView.findViewById(R.id.tv_cant_tpendientes);
+
+        // Cargar los conteos
+        loadTaskCounts();
+
         // Inflar el menú
         setHasOptionsMenu(true);
 
         return rootView;
-
     }
-    //metodos para cerrar sesion
+
+    private void loadTaskCounts() {
+        // Obtener tareas completadas
+        firestoreManager.getTareasCompletadas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+            @Override
+            public void onSuccess(List<Tarea> tareasCompletadas) {
+                if (isAdded()) { // Verificar que el fragmento esté adjunto
+                    tvCantidadTareasCompletadas.setText(String.valueOf(tareasCompletadas.size()));
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (isAdded()) {
+                    Toast.makeText(getContext(), "Error al cargar tareas completadas", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // Obtener tareas pendientes
+        firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+            @Override
+            public void onSuccess(List<Tarea> tareasPendientes) {
+                if (isAdded()) { // Verificar que el fragmento esté adjunto
+                    tvCantidadTareasPendientes.setText(String.valueOf(tareasPendientes.size()));
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (isAdded()) {
+                    Toast.makeText(getContext(), "Error al cargar tareas pendientes", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Actualizar los conteos cada vez que el fragmento se reanuda
+        loadTaskCounts();
+    }
+
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        // Inflar el menú
         inflater.inflate(R.menu.menu_toolbar_usuario, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -52,18 +113,25 @@ public class UsuarioFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.cerrar_sesion) {
-            // Cierra la sesión
             FirebaseAuth.getInstance().signOut();
             Toast.makeText(getActivity(), "Sesión cerrada", Toast.LENGTH_SHORT).show();
 
-            // Redirige a la pantalla de login
             Intent intent = new Intent(getActivity(), ActivityLogin.class);
             startActivity(intent);
             if (getActivity() != null) {
-                getActivity().finish();  // Finaliza la actividad actual
-            }  // Finaliza la actividad actual
+                getActivity().finish();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Limpiar los listeners de Firestore al destruir la vista
+        if (firestoreManager != null) {
+            firestoreManager.removeListeners();
+        }
     }
 }
