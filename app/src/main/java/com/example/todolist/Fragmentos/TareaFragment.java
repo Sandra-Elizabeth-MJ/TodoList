@@ -208,7 +208,6 @@ public class TareaFragment extends Fragment {
                 // Aquí puedes actualizar tu lista local si es necesario
                 nuevaTarea.setId(newTareaId);
                 tareaInfoList.add(nuevaTarea);
-                //adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
                 cargarTareas();
             }
 
@@ -395,6 +394,21 @@ public class TareaFragment extends Fragment {
                 @Override
                 public void onError(Exception e) {
                     Toast.makeText(requireContext(), "Error al completar la tarea: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        adaptar.setOnTareaDeleteListener(tarea -> {
+            firestoreManager.deleteTarea(tarea.getId(), new FirestoreManager.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    Toast.makeText(requireContext(), "Tarea eliminada exitosamente", Toast.LENGTH_SHORT).show();
+                    // No necesitas actualizar la lista manualmente, el listener de Firestore lo hará
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Toast.makeText(requireContext(), "Error al eliminar la tarea: " + e.getMessage(),
                             Toast.LENGTH_SHORT).show();
                 }
             });

@@ -195,6 +195,27 @@ public class FirestoreManager {
         }
         listeners.clear();
     }
+    public void deleteAllCompletedTasks(FirestoreCallback<Void> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    // Create a batch operation to delete all documents at once
+                    com.google.firebase.firestore.WriteBatch batch = db.batch();
+
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        batch.delete(document.getReference());
+                    }
+
+                    // Commit the batch
+                    batch.commit()
+                            .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                            .addOnFailureListener(callback::onError);
+                })
+                .addOnFailureListener(callback::onError);
+    }
 
     public boolean isOnline() {
         return isOnline;

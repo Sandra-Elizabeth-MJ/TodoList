@@ -17,7 +17,6 @@
         android:id="@+id/rvTareasCalendario"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
         tools:listitem="@layout/rv_tareas_calendario" />
 
 </LinearLayout>

@@ -80,8 +80,41 @@ public class ActivityTareaCompletada extends AppCompatActivity {
             finish();
             return true;
         }else if (item.getItemId() == R.id.delete_tareas_com) {
-            Toast.makeText(this, "Eliminar tareas", Toast.LENGTH_SHORT).show();
+            showDeleteConfirmationDialog();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    private void showDeleteConfirmationDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("CONFIRMAR ELIMINACIÓN")
+                .setMessage("¿Quieres eliminar las tareas??")
+                .setPositiveButton("Eliminar", (dialog, which) -> {
+                    deleteAllCompletedTasks();
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void deleteAllCompletedTasks() {
+        firestoreManager.deleteAllCompletedTasks(new FirestoreManager.FirestoreCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                Toast.makeText(ActivityTareaCompletada.this,
+                        "Tareas completadas eliminadas exitosamente",
+                        Toast.LENGTH_SHORT).show();
+                cargarTareasCompletadas(); // Reload the list
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(ActivityTareaCompletada.this,
+                        "Error al eliminar las tareas: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
