@@ -33,32 +33,22 @@ public class FirestoreManager {
 
     public void getTareas(FirestoreCallback<List<Tarea>> callback) {
         String userId = auth.getCurrentUser().getUid();
-        Query query = db.collection("user").document(userId)
+        ListenerRegistration listener = db.collection("user").document(userId)
                 .collection("tareas")
-                .whereEqualTo("completada", false)
-                .orderBy("fecha")  // Asegúrate de tener un índice para esta consulta
-                .limit(TAREAS_POR_PAGINA);
-
-        ListenerRegistration listener = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
-            if (e != null) {
-                callback.onError(e);
-                return;
-            }
-            List<Tarea> tareas = new ArrayList<>();
-            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                Tarea tarea = document.toObject(Tarea.class);
-                tarea.setId(document.getId());
-                tareas.add(tarea);
-            }
-
-            // Guardar el último documento visible
-            if (!queryDocumentSnapshots.isEmpty()) {
-                lastVisible = queryDocumentSnapshots.getDocuments()
-                        .get(queryDocumentSnapshots.size() - 1);
-            }
-
-            callback.onSuccess(tareas);
-        });
+                .whereEqualTo("completada", false) // Añadir este filtro
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        callback.onError(e);
+                        return;
+                    }
+                    List<Tarea> tareas = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Tarea tarea = document.toObject(Tarea.class);
+                        tarea.setId(document.getId());
+                        tareas.add(tarea);
+                    }
+                    callback.onSuccess(tareas);
+                });
         listeners.add(listener);
     }
 
