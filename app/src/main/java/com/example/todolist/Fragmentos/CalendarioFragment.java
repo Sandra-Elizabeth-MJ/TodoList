@@ -47,15 +47,17 @@ public class CalendarioFragment extends Fragment {
     private TareaCalendarioAdapter adapter;
     private List<Tarea> tareas;
     private HashMap<String, List<Tarea>> tareasPorFecha;
-    private final SimpleDateFormat formatoAPI = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    //private final SimpleDateFormat formatoAPI = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     private FirestoreManager firestoreManager;
     private static final int REQUEST_CODE_ACTUALIZAR_TAREA = 1;
+
+    private final SimpleDateFormat formatoAPI = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    private Date fechaSeleccionadaActual;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_calendario, container, false);
-        // Inicializar FirestoreManager
         firestoreManager = FirestoreManager.getInstance(requireContext());
 
         calendario = view.findViewById(R.id.calendario);
@@ -69,12 +71,112 @@ public class CalendarioFragment extends Fragment {
 
         tareas = new ArrayList<>();
         tareasPorFecha = new HashMap<>();
+        fechaSeleccionadaActual = new Date(); // Inicializar con la fecha actual
 
         configurarRecyclerView();
         configurarCalendario();
         obtenerTareas();
 
         return view;
+    }
+
+    private void configurarCalendario() {
+        // Configurar el rango de fechas visible
+        Calendar calendarMin = Calendar.getInstance();
+        calendarMin.add(Calendar.YEAR, -1);
+        calendario.setMinDate(calendarMin.getTimeInMillis());
+
+        Calendar calendarMax = Calendar.getInstance();
+        calendarMax.add(Calendar.YEAR, 2); // Aumentamos a 2 años para ver más adelante
+        calendario.setMaxDate(calendarMax.getTimeInMillis());
+
+        calendario.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            Calendar selectedCalendar = Calendar.getInstance();
+            selectedCalendar.set(year, month, dayOfMonth);
+            fechaSeleccionadaActual = selectedCalendar.getTime();
+
+            String fechaSeleccionada = String.format(Locale.getDefault(), "%02d/%02d/%04d",
+                    dayOfMonth, month + 1, year);
+            mostrarTareas(fechaSeleccionada);
+        });
+    }
+
+    private void organizarTareasPorFecha() {
+        tareasPorFecha.clear();
+        for (Tarea tarea : tareas) {
+            try {
+                // Parsear la fecha de la tarea
+                Date fechaTarea = formatoAPI.parse(tarea.getFecha());
+                if (fechaTarea != null) {
+                    String fechaFormateada = formatoAPI.format(fechaTarea);
+                    if (!tareasPorFecha.containsKey(fechaFormateada)) {
+                        tareasPorFecha.put(fechaFormateada, new ArrayList<>());
+                    }
+                    tareasPorFecha.get(fechaFormateada).add(tarea);
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void mostrarTareas(String fecha) {
+        List<Tarea> tareasDelDia = tareasPorFecha.get(fecha);
+
+        if (tareasDelDia == null || tareasDelDia.isEmpty()) {
+            recyclerView.setVisibility(View.GONE);
+            tvNoTareas.setVisibility(View.VISIBLE);
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            tvNoTareas.setVisibility(View.GONE);
+            // Ordenar las tareas por hora antes de mostrarlas
+            tareasDelDia.sort((t1, t2) -> {
+                try {
+                    SimpleDateFormat formatoHora = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                    Date hora1 = formatoHora.parse(t1.getHora());
+                    Date hora2 = formatoHora.parse(t2.getHora());
+                    return hora1.compareTo(hora2);
+                } catch (ParseException e) {
+                    return 0;
+                }
+            });
+            adapter.actualizarTareas(tareasDelDia);
+        }
+    }
+
+    private void obtenerTareas() {
+        firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+            @Override
+            public void onSuccess(List<Tarea> result) {
+                if (isAdded()) {
+                    tareas = result;
+                    organizarTareasPorFecha();
+
+                    // Mostrar las tareas de la fecha seleccionada actual
+                    String fechaActual = formatoAPI.format(fechaSeleccionadaActual);
+                    mostrarTareas(fechaActual);
+
+                    // Marcar días con tareas en el calendario
+                    getActivity().runOnUiThread(() -> configurarFechasConTareas());
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                if (isAdded()) {
+                    Toast.makeText(requireContext(),
+                            "Error al obtener tareas: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void configurarFechasConTareas() {
+        if (getActivity() == null) return;
+
+        // Actualizar la UI del calendario para mostrar las fechas con tareas
+        calendario.getDisplay().toString(); // Forzar actualización del calendario
     }
     private void configurarRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -89,92 +191,9 @@ public class CalendarioFragment extends Fragment {
 
         recyclerView.setAdapter(adapter);
     }
-    private void configurarCalendario() {
-        calendario.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            String fechaSeleccionada = String.format(Locale.getDefault(), "%02d/%02d/%04d", dayOfMonth, month + 1, year);
-            mostrarTareas(fechaSeleccionada);
-        });
-    }
+   
 
-    private void obtenerTareas() {
-        firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
-            @Override
-            public void onSuccess(List<Tarea> result) {
-                if (isAdded()) {
-                    tareas = result;
-                    organizarTareasPorFecha();
-                    configurarFechasConTareas();
-
-                    // Mostrar tareas para la fecha actual
-                    String fechaActual = formatoAPI.format(new Date());
-                    mostrarTareas(fechaActual);
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                if (isAdded()) {
-                    Toast.makeText(requireActivity(), "Error al obtener tareas: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    private void organizarTareasPorFecha() {
-        tareasPorFecha.clear();
-        for (Tarea tarea : tareas) {
-            String fecha = tarea.getFecha();
-            if (!tareasPorFecha.containsKey(fecha)) {
-                tareasPorFecha.put(fecha, new ArrayList<>());
-            }
-            tareasPorFecha.get(fecha).add(tarea);
-        }
-    }
-
-    private void configurarFechasConTareas() {
-        if (getActivity() == null) return;
-
-        getActivity().runOnUiThread(() -> {
-            try {
-                Calendar minDate = Calendar.getInstance();
-                minDate.add(Calendar.YEAR, -1);
-                calendario.setMinDate(minDate.getTimeInMillis());
-
-                Calendar maxDate = Calendar.getInstance();
-                maxDate.add(Calendar.YEAR, 1);
-                calendario.setMaxDate(maxDate.getTimeInMillis());
-
-                // Personalizar el calendario para mostrar días con tareas
-                for (String fechaStr : tareasPorFecha.keySet()) {
-                    try {
-                        Date fecha = formatoAPI.parse(fechaStr);
-                        if (fecha != null) {
-                            Calendar cal = Calendar.getInstance();
-                            cal.setTime(fecha);
-
-                        }
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    private void mostrarTareas(String fecha) {
-        List<Tarea> tareasDelDia = tareasPorFecha.get(fecha);
-
-        if (tareasDelDia == null || tareasDelDia.isEmpty()) {
-            recyclerView.setVisibility(View.GONE);
-            tvNoTareas.setVisibility(View.VISIBLE);
-        } else {
-            recyclerView.setVisibility(View.VISIBLE);
-            tvNoTareas.setVisibility(View.GONE);
-            adapter.actualizarTareas(tareasDelDia);
-        }
-    }
+    
 
     @Override
     public void onResume() {

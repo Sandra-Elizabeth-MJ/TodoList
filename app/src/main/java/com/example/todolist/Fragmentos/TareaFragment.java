@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
 import android.util.TypedValue;
@@ -23,6 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -80,11 +83,8 @@ public class TareaFragment extends Fragment {
     private FirebaseFirestore firestore;
     private FirebaseAuth auth;
     private String userId;
-    private boolean isInitialLoad = true;
 
     private FirestoreManager firestoreManager;
-
-    //constante con las lista de categorias predefinidas
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -101,8 +101,7 @@ public class TareaFragment extends Fragment {
         setUpRecyclerView();
         lanzarAddTarea();
         // Solo cargar tareas en la creación inicial
-       cargarTareas();
-
+        cargarTareas();
 
         //Inicializar el Toolbar
         Toolbar toolbar = rootView.findViewById(R.id.toolbar);
@@ -113,14 +112,88 @@ public class TareaFragment extends Fragment {
         setHasOptionsMenu(true);
         // inicializar la clase de sincronizacion
 
-
+        //createInitialTasks();
         return rootView;
     }
     private void initializeSpinnerAdapter() {
         categorias = new ArrayList<>();
         spinnerAdapter = new CategoriaAdapter(requireContext(), categorias);
     }
+    private void createInitialTasks() {
+        String[] categorias = {"Cumpleaños", "Trabajo", "Diario"};
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
+        // Obtener la fecha actual
+        Calendar currentDate = Calendar.getInstance();
+        int currentYear = currentDate.get(Calendar.YEAR);
+
+        for (int i = 1; i <= 300; i++) {
+            // Seleccionar categoría de forma rotativa
+            String categoria = categorias[(i - 1) % 3];
+
+            // Generar fecha futura aleatoria
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(currentDate.getTime()); // Comenzar desde la fecha actual
+
+            // Añadir días aleatorios (entre 0 y 365 días)
+            int diasAdicionales = (int)(Math.random() * 365);
+            cal.add(Calendar.DAY_OF_YEAR, diasAdicionales);
+
+            // Formatear la fecha
+            String fecha = String.format(Locale.getDefault(), "%02d/%02d/%d",
+                    cal.get(Calendar.DAY_OF_MONTH),
+                    cal.get(Calendar.MONTH) + 1,
+                    cal.get(Calendar.YEAR));
+
+            // Generar hora aleatoria
+            int hora = (int)(Math.random() * 24);
+            int minuto = (int)(Math.random() * 60);
+            String horaStr = String.format(Locale.getDefault(), "%02d:%02d", hora, minuto);
+
+            // Crear nombre de tarea según la categoría y fecha
+            String nombreTarea = "";
+            switch (categoria) {
+                case "Cumpleaños":
+                    nombreTarea = "Cumpleaños de Persona " + i + " (" + fecha + ")";
+                    break;
+                case "Trabajo":
+                    nombreTarea = "Tarea laboral #" + i + " para el " + fecha;
+                    break;
+                case "Diario":
+                    nombreTarea = "Actividad diaria " + i + " - " + fecha;
+                    break;
+            }
+
+            // Crear y guardar la tarea
+            final Tarea nuevaTarea = new Tarea(nombreTarea, fecha, horaStr, categoria);
+            nuevaTarea.setUserId(userId);
+
+            // Usar un final counter para tracking
+            final int taskNumber = i;
+
+            firestoreManager.createTarea(nuevaTarea, new FirestoreManager.FirestoreCallback<String>() {
+                @Override
+                public void onSuccess(String newTareaId) {
+                    if (taskNumber == 300) {
+                        // Notificar cuando se complete la última tarea
+                        Handler  mainHandler = new Handler(Looper.getMainLooper());
+                        mainHandler.post(() -> {
+                            Toast.makeText(requireContext(),
+                                    "Se completó la creación de todas las tareas",
+                                    Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e("CreateInitialTasks", "Error al crear tarea " + taskNumber + ": " + e.getMessage());
+                }
+            });
+        }
+
+        Toast.makeText(requireContext(), "Iniciando creación de 300 tareas...", Toast.LENGTH_LONG).show();
+    }
     private void lanzarAddTarea() {
         FloatingActionButton btnCreateActividad = rootView.findViewById(R.id.fbtn_detalleTarea);
         btnCreateActividad.setOnClickListener(view -> {
@@ -261,15 +334,7 @@ public class TareaFragment extends Fragment {
             }
         }
     }
-    private void agregarBotonesCategorias(List<String> categorias) {
-        linearLayoutCategorias.removeAllViews();
-        agregarBotonTodasLasCategorias();
-        for (String categoria : categorias) {
-            if (!categoria.equals("Crear nueva categoría")) {
-                agregarBotonCategoria(categoria);
-            }
-        }
-    }
+
 
     @SuppressLint("ResourceAsColor")
     private void agregarBotonCategoria(String nombreCategoria) {
