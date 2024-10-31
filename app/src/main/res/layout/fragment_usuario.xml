@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/fondo_usuario"
+    tools:context=".Fragmentos.UsuarioFragment">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_usuario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/splash"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        app:menu="@menu/menu_toolbar_usuario"
+        app:title="MI PERFIL"
+        app:titleTextColor="@android:color/white"/>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="17dp"
+        android:padding="18dp"
+        app:cardBackgroundColor="@color/plomoA2"
+        app:cardCornerRadius="26dp"
+        app:cardElevation="8dp">
+
+        <LinearLayout
+            android:layout_margin="10dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Foto del usuario -->
+            <ImageView
+                android:id="@+id/userImage"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_margin="15dp"
+                android:background="@drawable/usuario"
+                android:contentDescription="User Profile Image"
+                android:scaleType="centerCrop" />
+
+            <!-- Layout vertical para nombre, usuario y correo con sus títulos -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:orientation="vertical">
+
+                <!-- Nombre completo -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre: "
+                    android:textColor="@color/splash"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/userName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="17sp" />
+
+                <!-- Nombre de usuario -->
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Apellidos: "
+                    android:textColor="@color/splash"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/userapellidos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Apellidos"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="17sp" />
+
+                <!-- Correo electrónico -->
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Correo: "
+                    android:textColor="@color/splash"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="correo@ejemplo.com"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <!-- Botón de editar (lápiz) en la esquina inferior derecha -->
+            <ImageButton
+                android:id="@+id/editProfileButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="30dp"
+                android:background="@color/plomoA2"
+                android:contentDescription="Edit Profile"
+                android:padding="8dp"
+                android:src="@drawable/ic_edit_usuario" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+
+
+
+</LinearLayout>

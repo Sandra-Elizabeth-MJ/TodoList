@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.todolist.Fragmentos.CalendarioFragment;
 import androidx.fragment.app.Fragment;
 import com.example.todolist.Fragmentos.TareaFragment;
+import com.example.todolist.Fragmentos.UsuarioFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -19,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
-        navView.setOnNavigationItemSelectedListener(item -> {
+        navView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             int itemId = item.getItemId();
             if (itemId == R.id.navigation_tareas) {
@@ -27,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
             }
             else if (itemId == R.id.navigation_calendario) {
                 selectedFragment = new CalendarioFragment();
+            }
+            else if (itemId == R.id.navigation_mios) {
+                selectedFragment = new UsuarioFragment();
             }
 
             if (selectedFragment != null) {

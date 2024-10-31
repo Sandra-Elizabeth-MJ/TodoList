@@ -9,6 +9,8 @@ public class Tarea implements Serializable {
     public String hora;
     public String categoria;
     public String userId;
+    private boolean completada;
+    private String fechaCompletada;
 
     public Tarea() {
     }
@@ -19,12 +21,16 @@ public class Tarea implements Serializable {
         this.hora = hora;
         this.categoria = categoria;
     }
-    public Tarea(String nombre, String id,String fecha, String hora, String categoria) {
+
+    public Tarea(String id, String nombre, String fecha, String hora, String categoria, String userId, boolean completada, String fechaCompletada) {
         this.id = id;
         this.nombre = nombre;
         this.fecha = fecha;
         this.hora = hora;
         this.categoria = categoria;
+        this.userId = userId;
+        this.completada = completada;
+        this.fechaCompletada = fechaCompletada;
     }
 
     public Tarea(String id, String nombre, String fecha, String hora, String categoria, String userId) {
@@ -82,5 +88,20 @@ public class Tarea implements Serializable {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+    public boolean isCompletada() {
+        return completada;
+    }
+
+    public void setCompletada(boolean completada) {
+        this.completada = completada;
+    }
+
+    public String getFechaCompletada() {
+        return fechaCompletada;
+    }
+
+    public void setFechaCompletada(String fechaCompletada) {
+        this.fechaCompletada = fechaCompletada;
     }
 }

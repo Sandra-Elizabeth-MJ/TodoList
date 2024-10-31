@@ -26,18 +26,22 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.MainActivity;
 import com.example.todolist.R;
+import com.example.todolist.activities.ActivityAdministarCat;
 import com.example.todolist.activities.ActivityDetalleTarea;
 import com.example.todolist.activities.ActivityLogin;
+import com.example.todolist.activities.ActivityTareaCompletada;
 import com.example.todolist.adapters.CategoriaAdapter;
 import com.example.todolist.adapters.TareaAdapter;
 import com.example.todolist.entities.Categorias;
@@ -72,7 +76,6 @@ public class TareaFragment extends Fragment {
     private static final int REQUEST_CODE_ACTUALIZAR_TAREA = 1;
     private View rootView;
     private Button botonSeleccionado = null;
-    private Toolbar toolbar;
 
     private FirebaseFirestore firestore;
     private FirebaseAuth auth;
@@ -88,6 +91,7 @@ public class TareaFragment extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tarea, container, false);
         linearLayoutCategorias = rootView.findViewById(R.id.linearLayoutCategorias);
+
         firestoreManager = FirestoreManager.getInstance(requireContext());
         // Inicializar Firebase
         firestore = FirebaseFirestore.getInstance();
@@ -100,9 +104,11 @@ public class TareaFragment extends Fragment {
        cargarTareas();
 
 
-        // Inicializar el Toolbar
-        toolbar = rootView.findViewById(R.id.toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        //Inicializar el Toolbar
+        Toolbar toolbar = rootView.findViewById(R.id.toolbar);
+        if (getActivity() != null) {
+            ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        }
         // Inflar el menú
         setHasOptionsMenu(true);
         // inicializar la clase de sincronizacion
@@ -191,33 +197,18 @@ public class TareaFragment extends Fragment {
 
         builder.show();
     }
-    //guarda las tareas en el firestore
-    /*
-    private void crearTarea(String nombre, String fecha, String hora, String categoriaSeleccionada) {
-        Map<String, Object> tarea = new HashMap<>();
-        tarea.put("nombre", nombre);
-        tarea.put("fecha", fecha);
-        tarea.put("hora", hora);
-        tarea.put("categoria", categoriaSeleccionada);
-        tarea.put("userId", userId);
-
-        firestore.collection("user").document(userId)
-                .collection("tareas")
-                .add(tarea)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(getContext(), "Tarea creada con éxito", Toast.LENGTH_SHORT).show();
-                    cargarTareas(); // Recargar todas las tareas después de crear una nueva
-                })
-                .addOnFailureListener(e -> Toast.makeText(requireActivity(), "Error al crear tarea", Toast.LENGTH_SHORT).show());
-    }*/
     private void crearTarea(String nombre, String fecha, String hora, String categoriaSeleccionada) {
         Tarea nuevaTarea = new Tarea(nombre, fecha, hora, categoriaSeleccionada);
         nuevaTarea.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
-        firestoreManager.createTarea(nuevaTarea, new FirestoreManager.FirestoreCallback<Void>() {
+        firestoreManager.createTarea(nuevaTarea, new FirestoreManager.FirestoreCallback<String>() {
             @Override
-            public void onSuccess(Void result) {
+            public void onSuccess(String newTareaId) {
                 Toast.makeText(getContext(), "Tarea creada con éxito", Toast.LENGTH_SHORT).show();
+                // Aquí puedes actualizar tu lista local si es necesario
+                nuevaTarea.setId(newTareaId);
+                tareaInfoList.add(nuevaTarea);
+                cargarTareas();
             }
 
             @Override
@@ -226,44 +217,49 @@ public class TareaFragment extends Fragment {
             }
         });
     }
-
     private void guardarNuevaCategoria(String nombreCategoria) {
-        Map<String, Object> categoria = new HashMap<>();
-        categoria.put("nombre", nombreCategoria);
-        categoria.put("userId", userId);
+        firestoreManager.createCategoria(nombreCategoria, new FirestoreManager.FirestoreCallback<String>() {
+            @Override
+            public void onSuccess(String newCategoriaId) {
+                Toast.makeText(requireActivity(), "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
+                // La UI se actualizará automáticamente gracias al SnapshotListener en getCategorias
+            }
 
-        firestore.collection("user").document(userId)
-                .collection("categorias")
-                .add(categoria)
-                .addOnSuccessListener(documentReference -> {
-                    categorias.add(nombreCategoria);
-                    spinnerAdapter.notifyDataSetChanged();
-                    Toast.makeText(requireActivity(), "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
-                    cargarCategorias();
-                })
-                .addOnFailureListener(e -> Toast.makeText(requireActivity(), "Error al crear categoría", Toast.LENGTH_SHORT).show());
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(requireActivity(), "Error al crear categoría: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void cargarCategorias() {
         if (spinnerAdapter == null) {
             initializeSpinnerAdapter();
         }
-        firestore.collection("user").document(userId)
-                .collection("categorias")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    categorias.clear();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        String nombreCategoria = document.getString("nombre");
-                        if (nombreCategoria != null) {
-                            categorias.add(nombreCategoria);
-                        }
-                    }
-                    categorias.add("Crear nueva categoría");
-                    spinnerAdapter.notifyDataSetChanged();
-                    agregarBotonesCategorias(categorias);
-                })
-                .addOnFailureListener(e -> Toast.makeText(requireActivity(), "Error al cargar categorías", Toast.LENGTH_SHORT).show());
+        firestoreManager.getCategorias(new FirestoreManager.FirestoreCallback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> result) {
+                categorias.clear();
+                categorias.addAll(result);
+                categorias.add("Crear nueva categoría");
+                spinnerAdapter.notifyDataSetChanged();
+                actualizarBotonesCategorias();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(requireActivity(), "Error al cargar categorías: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void actualizarBotonesCategorias() {
+        linearLayoutCategorias.removeAllViews();
+        agregarBotonTodasLasCategorias();
+        for (String categoria : categorias) {
+            if (!categoria.equals("Crear nueva categoría")) {
+                agregarBotonCategoria(categoria);
+            }
+        }
     }
     private void agregarBotonesCategorias(List<String> categorias) {
         linearLayoutCategorias.removeAllViews();
@@ -305,29 +301,7 @@ public class TareaFragment extends Fragment {
 
         linearLayoutCategorias.addView(button);
     }
-    //Recupera todas las tareas de Firestore y las guarda en la lista tareaInfoList. Luego, actualiza la vista del RecyclerView.
-    /*
-    private void cargarTareas() {
-        firestore.collection("user").document(userId)
-                .collection("tareas")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    tareaInfoList.clear(); // Limpiar la lista maestra
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Tarea tarea = new Tarea(
-                                document.getString("nombre"),
-                                document.getId(),
-                                document.getString("fecha"),
-                                document.getString("hora"),
-                                document.getString("categoria")
-                        );
-                        tareaInfoList.add(tarea);
-                    }
-                    adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
-                    cargarCategorias(); // Cargar categorías después de tener las tareas
-                })
-                .addOnFailureListener(e -> Log.e("Firestore", "Error al cargar tareas", e));
-    }*/
+
     private void cargarTareas() {
         firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
             @Override
@@ -391,7 +365,8 @@ public class TareaFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        cargarTareas(); // Recargar datos solo cuando se regrese al fragmento
+        cargarTareas();
+        cargarCategorias();// Recargar datos solo cuando se regrese al fragmento
     }
 
     private void setUpRecyclerView() {
@@ -405,6 +380,38 @@ public class TareaFragment extends Fragment {
             Intent intent = new Intent(requireActivity(), ActivityDetalleTarea.class);
             intent.putExtra("TAREA_ID", tarea.getId());
             startActivityForResult(intent, REQUEST_CODE_ACTUALIZAR_TAREA);
+        });
+
+        adaptar.setOnTareaCompletadaListener(tarea -> {
+            firestoreManager.marcarTareaComoCompletada(tarea, new FirestoreManager.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    // No necesitas eliminar la tarea manualmente aquí
+                    // El listener de Firestore se encargará de actualizar la lista
+                    Toast.makeText(requireContext(), "Tarea completada exitosamente", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Toast.makeText(requireContext(), "Error al completar la tarea: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        adaptar.setOnTareaDeleteListener(tarea -> {
+            firestoreManager.deleteTarea(tarea.getId(), new FirestoreManager.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    Toast.makeText(requireContext(), "Tarea eliminada exitosamente", Toast.LENGTH_SHORT).show();
+                    // No necesitas actualizar la lista manualmente, el listener de Firestore lo hará
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Toast.makeText(requireContext(), "Error al eliminar la tarea: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 
@@ -437,9 +444,9 @@ public class TareaFragment extends Fragment {
                 }, hour, minute, true);
         timePickerDialog.show();
     }
-    //metodos para cerrar sesion
+    //metodos para menut del toolbar
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         // Inflar el menú
         inflater.inflate(R.menu.menu_toolbar_main, menu);
         super.onCreateOptionsMenu(menu, inflater);
@@ -447,22 +454,34 @@ public class TareaFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.cerrar_sesion) {
-            // Cierra la sesión
-            FirebaseAuth.getInstance().signOut();
-            Toast.makeText(getActivity(), "Sesión cerrada", Toast.LENGTH_SHORT).show();
+        Intent intent;
+        int itemId = item.getItemId();
 
-            // Redirige a la pantalla de login
-            Intent intent = new Intent(getActivity(), ActivityLogin.class);
+        if (itemId == R.id.action_admin_cat) {
+            // Redirige a la actividad de administración de categorías
+            intent = new Intent(getActivity(), ActivityAdministarCat.class);
             startActivity(intent);
-            getActivity().finish();  // Finaliza la actividad actual
+            Toast.makeText(getActivity(), "Administrar categorías", Toast.LENGTH_SHORT).show();
+            return true;
+
+        } else if (itemId == R.id.action_search) {
+            Toast.makeText(getActivity(), "Buscar", Toast.LENGTH_SHORT).show();
+            return true;
+
+        } else if (itemId == R.id.action_tareas_com) {
+            // Redirige a la actividad de tareas completadas
+            intent = new Intent(getActivity(), ActivityTareaCompletada.class);
+            startActivity(intent);
+            Toast.makeText(getActivity(), "Tareas completadas", Toast.LENGTH_SHORT).show();
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
     @Override
     public void onDestroy() {
         super.onDestroy();
         firestoreManager.removeListeners();
+
     }
 }

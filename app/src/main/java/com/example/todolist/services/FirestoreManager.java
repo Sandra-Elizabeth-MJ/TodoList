@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.example.todolist.entities.Tarea;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -62,6 +63,7 @@ public class FirestoreManager {
         String userId = auth.getCurrentUser().getUid();
         ListenerRegistration listener = db.collection("user").document(userId)
                 .collection("tareas")
+                .whereEqualTo("completada", false) // Añadir este filtro
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
                         callback.onError(e);
@@ -78,12 +80,18 @@ public class FirestoreManager {
         listeners.add(listener);
     }
 
-    public void createTarea(Tarea tarea, FirestoreCallback<Void> callback) {
+    public void createTarea(Tarea tarea, FirestoreCallback<String> callback) {
         String userId = auth.getCurrentUser().getUid();
-        db.collection("user").document(userId)
+        DocumentReference newTareaRef = db.collection("user").document(userId)
                 .collection("tareas")
-                .add(tarea)
-                .addOnSuccessListener(documentReference -> callback.onSuccess(null))
+                .document();  // Esto genera un nuevo ID inmediatamente
+
+        // Asigna el ID generado a la tarea
+        String newTareaId = newTareaRef.getId();
+        tarea.setId(newTareaId);
+
+        newTareaRef.set(tarea)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(newTareaId))
                 .addOnFailureListener(callback::onError);
     }
 
@@ -111,6 +119,7 @@ public class FirestoreManager {
         String userId = auth.getCurrentUser().getUid();
         ListenerRegistration listener = db.collection("user").document(userId)
                 .collection("categorias")
+                .whereEqualTo("userId", userId)  // Asegura que solo obtenemos las categorías del usuario actual
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
                         callback.onError(e);
@@ -118,21 +127,65 @@ public class FirestoreManager {
                     }
                     List<String> categorias = new ArrayList<>();
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        categorias.add(document.getString("nombre"));
+                        String nombre = document.getString("nombre");
+                        if (nombre != null && !categorias.contains(nombre)) {
+                            categorias.add(nombre);
+                        }
                     }
                     callback.onSuccess(categorias);
                 });
         listeners.add(listener);
     }
 
-    public void createCategoria(String categoria, FirestoreCallback<Void> callback) {
+    public void marcarTareaComoCompletada(Tarea tarea, FirestoreCallback<Void> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        tarea.setCompletada(true);
+        tarea.setFechaCompletada(new java.text.SimpleDateFormat("yyyy/MM/dd",
+                java.util.Locale.getDefault()).format(new java.util.Date()));
+
+        db.collection("user").document(userId)
+                .collection("tareas")
+                .document(tarea.getId())
+                .set(tarea)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onError);
+    }
+
+    public void getTareasCompletadas(FirestoreCallback<List<Tarea>> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        ListenerRegistration listener = db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", true)
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        callback.onError(e);
+                        return;
+                    }
+                    List<Tarea> tareas = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Tarea tarea = document.toObject(Tarea.class);
+                        tarea.setId(document.getId());
+                        tareas.add(tarea);
+                    }
+                    callback.onSuccess(tareas);
+                });
+        listeners.add(listener);
+    }
+
+    public void createCategoria(String categoria, FirestoreCallback<String> callback) {
         String userId = auth.getCurrentUser().getUid();
         Map<String, Object> categoriaMap = new HashMap<>();
         categoriaMap.put("nombre", categoria);
-        db.collection("user").document(userId)
+        categoriaMap.put("userId", userId);
+
+        DocumentReference newCategoriaRef = db.collection("user").document(userId)
                 .collection("categorias")
-                .add(categoriaMap)
-                .addOnSuccessListener(documentReference -> callback.onSuccess(null))
+                .document();
+
+        String newCategoriaId = newCategoriaRef.getId();
+
+        newCategoriaRef.set(categoriaMap)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(newCategoriaId))
                 .addOnFailureListener(callback::onError);
     }
 
@@ -141,6 +194,27 @@ public class FirestoreManager {
             listener.remove();
         }
         listeners.clear();
+    }
+    public void deleteAllCompletedTasks(FirestoreCallback<Void> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    // Create a batch operation to delete all documents at once
+                    com.google.firebase.firestore.WriteBatch batch = db.batch();
+
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        batch.delete(document.getReference());
+                    }
+
+                    // Commit the batch
+                    batch.commit()
+                            .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                            .addOnFailureListener(callback::onError);
+                })
+                .addOnFailureListener(callback::onError);
     }
 
     public boolean isOnline() {

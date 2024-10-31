@@ -50,7 +50,7 @@ public class ActivityDetalleTarea extends AppCompatActivity {
     private String tareaId;
     private FloatingActionButton fab;
 
-    private FirebaseFirestore firestore;
+    //private FirebaseFirestore firestore;
     private FirebaseAuth auth;
     private String userId;
     private FirestoreManager firestoreManager;
@@ -63,7 +63,7 @@ public class ActivityDetalleTarea extends AppCompatActivity {
         firestoreManager = FirestoreManager.getInstance(this);
 
         // Initialize Firebase
-        firestore = FirebaseFirestore.getInstance();
+        //firestore = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         userId = auth.getCurrentUser().getUid();
 
@@ -136,49 +136,26 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             hora_tv.setText(hora);
         }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show();
     }
-
     private void cargarCategorias() {
-        firestore.collection("user").document(userId)
-                .collection("categorias")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        categorias.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            categorias.add(document.getString("nombre"));
-                        }
-                        categorias.add("Crear nueva categoría");
-                        spinnerAdapter.notifyDataSetChanged();
+        firestoreManager.getCategorias(new FirestoreManager.FirestoreCallback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> result) {
+                categorias.clear();
+                categorias.addAll(result);
+                categorias.add("Crear nueva categoría");
+                spinnerAdapter.notifyDataSetChanged();
 
-                        if (tareaId != null) {
-                            cargarDetallesTarea(tareaId);
-                        }
-                    } else {
-                        Toast.makeText(ActivityDetalleTarea.this, "Error al cargar las categorías", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                if (tareaId != null) {
+                    cargarDetallesTarea(tareaId);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(ActivityDetalleTarea.this, "Error al cargar las categorías: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
-
-    /*
-    private void cargarDetallesTarea(String tareaId) {
-        firestore.collection("user").document(userId)
-                .collection("tareas").document(tareaId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        tvDetailInfo.setText(documentSnapshot.getString("nombre"));
-                        fechavencimiento_tv.setText(documentSnapshot.getString("fecha"));
-                        hora_tv.setText(documentSnapshot.getString("hora"));
-
-                        String categoria = documentSnapshot.getString("categoria");
-                        int posicion = categorias.indexOf(categoria);
-                        if (posicion != -1) {
-                            spinnerCategories.setSelection(posicion);
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> Toast.makeText(ActivityDetalleTarea.this, "Error al cargar la tarea", Toast.LENGTH_SHORT).show());
-    }*/
     private void cargarDetallesTarea(String tareaId) {
         firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
             @Override
@@ -204,7 +181,6 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             }
         });
     }
-
     private void actualizarTareaEnFirestore() {
         String categoriaSeleccionada = spinnerCategories.getSelectedItem().toString();
         if (categoriaSeleccionada.equals("Crear nueva categoría")) {
@@ -221,31 +197,6 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             return;
         }
 
-        Map<String, Object> tareaMap = new HashMap<>();
-        tareaMap.put("nombre", nombre);
-        tareaMap.put("fecha", fecha);
-        tareaMap.put("hora", hora);
-        tareaMap.put("categoria", categoriaSeleccionada);
-        tareaMap.put("userId", userId);
-
-        DocumentReference tareaRef;
-        if (tareaId != null) {
-            tareaRef = firestore.collection("user").document(userId)
-                    .collection("tareas").document(tareaId);
-        } else {
-            tareaRef = firestore.collection("user").document(userId)
-                    .collection("tareas").document();
-        }
-        /*
-
-        tareaRef.set(tareaMap)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(ActivityDetalleTarea.this, "Tarea guardada con éxito", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);
-                    finish();
-                })
-                .addOnFailureListener(e -> Toast.makeText(ActivityDetalleTarea.this, "Error al guardar la tarea", Toast.LENGTH_SHORT).show());
-         */
         Tarea tareaActualizada = new Tarea(tareaId, nombre, fecha, hora, categoriaSeleccionada, userId);
 
         firestoreManager.updateTarea(tareaActualizada, new FirestoreManager.FirestoreCallback<Void>() {
@@ -253,6 +204,9 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             public void onSuccess(Void result) {
                 Toast.makeText(ActivityDetalleTarea.this, "Tarea guardada con éxito", Toast.LENGTH_SHORT).show();
                 setResult(RESULT_OK);
+                if (!firestoreManager.isOnline()) {
+                    Toast.makeText(ActivityDetalleTarea.this, "Los cambios se sincronizarán cuando haya conexión", Toast.LENGTH_LONG).show();
+                }
                 finish();
             }
 
@@ -284,21 +238,21 @@ public class ActivityDetalleTarea extends AppCompatActivity {
     }
 
     private void guardarNuevaCategoria(String nombreCategoria) {
-        Map<String, Object> categoria = new HashMap<>();
-        categoria.put("nombre", nombreCategoria);
-        categoria.put("userId", userId);
+        firestoreManager.createCategoria(nombreCategoria, new FirestoreManager.FirestoreCallback<String>() {
+            @Override
+            public void onSuccess(String newCategoriaId) {
+                categorias.add(categorias.size() - 1, nombreCategoria);
+                spinnerAdapter.notifyDataSetChanged();
+                int posicion = categorias.indexOf(nombreCategoria);
+                spinnerCategories.setSelection(posicion);
+                Toast.makeText(ActivityDetalleTarea.this, "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
+            }
 
-        firestore.collection("user").document(userId)
-                .collection("categorias")
-                .add(categoria)
-                .addOnSuccessListener(documentReference -> {
-                    categorias.add(categorias.size() - 1, nombreCategoria);
-                    spinnerAdapter.notifyDataSetChanged();
-                    int posicion = categorias.indexOf(nombreCategoria);
-                    spinnerCategories.setSelection(posicion);
-                    Toast.makeText(ActivityDetalleTarea.this, "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> Toast.makeText(ActivityDetalleTarea.this, "Error al crear la categoría", Toast.LENGTH_SHORT).show());
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(ActivityDetalleTarea.this, "Error al crear la categoría: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -316,11 +270,11 @@ public class ActivityDetalleTarea extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        actualizarTareaEnFirestore();
-    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        actualizarTareaEnFirestore();
+//    }
 
 }

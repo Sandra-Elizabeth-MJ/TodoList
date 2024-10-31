@@ -42,5 +42,8 @@
     <string name="a_n_no_est_s_registrado_reg_strate">¿Aún no estás registrado? Regístrate</string>
     <string name="btf_add_nueva_tarea">Añadir nueva tarea</string>
     <string name="cerrar_sesion">Cerrar Sesión</string>
+    <string name="hello_blank_fragment">Hello usuario fragment</string>
+    <string name="tareas_completadas">Tareas Completadas</string>
+    <string name="categoria">Categoria</string>
 
 </resources>
