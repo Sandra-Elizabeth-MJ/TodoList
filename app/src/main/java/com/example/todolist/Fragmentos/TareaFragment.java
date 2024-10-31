@@ -8,6 +8,7 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -84,13 +85,14 @@ public class TareaFragment extends Fragment {
     private FirebaseFirestore firestore;
     private FirebaseAuth auth;
     private String userId;
-
     private FirestoreManager firestoreManager;
 
     private boolean isLoading = false;
     private boolean hasMoreTareas = true;
     private ProgressBar progressBar;
     private String currentCategoria = "Todas"; // Categoría por defecto
+
+    private MediaPlayer mediaPlayer;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -107,7 +109,7 @@ public class TareaFragment extends Fragment {
         isLoading = false;
         hasMoreTareas = true;
         currentCategoria = "Todas";
-
+        mediaPlayer = MediaPlayer.create(requireContext(), R.raw.task_complete);
         initializeSpinnerAdapter();
         setUpRecyclerView();
         lanzarAddTarea();
@@ -557,6 +559,8 @@ public class TareaFragment extends Fragment {
             firestoreManager.marcarTareaComoCompletada(tarea, new FirestoreManager.FirestoreCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
+
+                    playCompletionSound();
                     // Eliminar la tarea de la lista local
                     tareaInfoList.remove(tarea);
                     adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
@@ -598,6 +602,20 @@ public class TareaFragment extends Fragment {
                 }
             });
         });
+    }
+    private void playCompletionSound() {
+        try {
+            if (mediaPlayer != null) {
+                // Si el MediaPlayer está reproduciendo, detenerlo y reiniciarlo
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                    mediaPlayer.prepare();
+                }
+                mediaPlayer.start();
+            }
+        } catch (Exception e) {
+            Log.e("TareaFragment", "Error al reproducir sonido: " + e.getMessage());
+        }
     }
 
     private void mostrarDatePicker(EditText etFecha) {
@@ -666,7 +684,11 @@ public class TareaFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        // Liberar recursos del MediaPlayer
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
         firestoreManager.removeListeners();
-
     }
 }
