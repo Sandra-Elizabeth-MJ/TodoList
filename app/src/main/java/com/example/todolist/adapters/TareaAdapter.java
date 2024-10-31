@@ -36,9 +36,13 @@ import java.util.List;
 public class TareaAdapter extends RecyclerView.Adapter<TareaAdapter.TareaViewHolder> {
     private List<Tarea> tareas;
     private OnTareaClickListener listener;
+    private OnTareaCompletadaListener completadaListener;
 
     public interface OnTareaClickListener {
         void onTareaClick(Tarea tarea);
+    }
+    public interface OnTareaCompletadaListener {
+        void onTareaCompletada(Tarea tarea);
     }
 
     public TareaAdapter(List<Tarea> tareas) {
@@ -48,6 +52,10 @@ public class TareaAdapter extends RecyclerView.Adapter<TareaAdapter.TareaViewHol
     public void setOnTareaClickListener(OnTareaClickListener listener) {
         this.listener = listener;
     }
+    public void setOnTareaCompletadaListener(OnTareaCompletadaListener listener) {
+        this.completadaListener = listener;
+    }
+
 
     @NonNull
     @Override
@@ -63,6 +71,12 @@ public class TareaAdapter extends RecyclerView.Adapter<TareaAdapter.TareaViewHol
         holder.nombreTarea.setText(tarea.getNombre());
         holder.fechaTarea.setText(tarea.getFecha());
         holder.horaTarea.setText(tarea.getHora());
+        // Set RadioButton click listener
+        holder.radioButton.setOnClickListener(v -> {
+            if (completadaListener != null) {
+                completadaListener.onTareaCompletada(tarea);
+            }
+        });
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {

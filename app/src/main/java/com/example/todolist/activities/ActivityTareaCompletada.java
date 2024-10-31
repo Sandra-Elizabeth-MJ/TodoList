@@ -1,19 +1,35 @@
 package com.example.todolist.activities;
 
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.R;
+import com.example.todolist.adapters.TareaCompletadaAdapter;
+import com.example.todolist.entities.Tarea;
+import com.example.todolist.services.FirestoreManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActivityTareaCompletada extends AppCompatActivity {
+
+    private FirestoreManager firestoreManager;
+    private TareaCompletadaAdapter adapter;
+    private List<Tarea> tareasCompletadas = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tarea_completada);
+        // Inicializar FirestoreManager
+        firestoreManager = FirestoreManager.getInstance(this);
         // Configure Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar_tarea_completada);
         setSupportActionBar(toolbar);
@@ -22,6 +38,40 @@ public class ActivityTareaCompletada extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
+
+        // Configurar RecyclerView
+        RecyclerView recyclerView = findViewById(R.id.rvTareasCompletadas);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new TareaCompletadaAdapter(tareasCompletadas);
+        recyclerView.setAdapter(adapter);
+
+
+
+        // Cargar tareas completadas
+        cargarTareasCompletadas();
+    }
+    private void cargarTareasCompletadas() {
+        firestoreManager.getTareasCompletadas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+            @Override
+            public void onSuccess(List<Tarea> result) {
+                tareasCompletadas.clear();
+                tareasCompletadas.addAll(result);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(ActivityTareaCompletada.this,
+                        "Error al cargar tareas completadas: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflar el menú con la opción de cerrar sesión
+        getMenuInflater().inflate(R.menu.toolbar_tareas_completadas, menu);
+        return true;
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -29,6 +79,8 @@ public class ActivityTareaCompletada extends AppCompatActivity {
             setResult(RESULT_OK);
             finish();
             return true;
+        }else if (item.getItemId() == R.id.delete_tareas_com) {
+            Toast.makeText(this, "Eliminar tareas", Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
     }

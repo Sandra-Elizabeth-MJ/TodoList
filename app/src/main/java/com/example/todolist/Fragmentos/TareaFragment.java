@@ -382,6 +382,23 @@ public class TareaFragment extends Fragment {
             intent.putExtra("TAREA_ID", tarea.getId());
             startActivityForResult(intent, REQUEST_CODE_ACTUALIZAR_TAREA);
         });
+
+        adaptar.setOnTareaCompletadaListener(tarea -> {
+            firestoreManager.marcarTareaComoCompletada(tarea, new FirestoreManager.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    // No necesitas eliminar la tarea manualmente aquí
+                    // El listener de Firestore se encargará de actualizar la lista
+                    Toast.makeText(requireContext(), "Tarea completada exitosamente", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Toast.makeText(requireContext(), "Error al completar la tarea: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
     }
 
     private void mostrarDatePicker(EditText etFecha) {

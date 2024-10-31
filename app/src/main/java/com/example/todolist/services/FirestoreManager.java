@@ -63,6 +63,7 @@ public class FirestoreManager {
         String userId = auth.getCurrentUser().getUid();
         ListenerRegistration listener = db.collection("user").document(userId)
                 .collection("tareas")
+                .whereEqualTo("completada", false) // Añadir este filtro
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
                         callback.onError(e);
@@ -132,6 +133,41 @@ public class FirestoreManager {
                         }
                     }
                     callback.onSuccess(categorias);
+                });
+        listeners.add(listener);
+    }
+
+    public void marcarTareaComoCompletada(Tarea tarea, FirestoreCallback<Void> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        tarea.setCompletada(true);
+        tarea.setFechaCompletada(new java.text.SimpleDateFormat("yyyy/MM/dd",
+                java.util.Locale.getDefault()).format(new java.util.Date()));
+
+        db.collection("user").document(userId)
+                .collection("tareas")
+                .document(tarea.getId())
+                .set(tarea)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onError);
+    }
+
+    public void getTareasCompletadas(FirestoreCallback<List<Tarea>> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        ListenerRegistration listener = db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", true)
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        callback.onError(e);
+                        return;
+                    }
+                    List<Tarea> tareas = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Tarea tarea = document.toObject(Tarea.class);
+                        tarea.setId(document.getId());
+                        tareas.add(tarea);
+                    }
+                    callback.onSuccess(tareas);
                 });
         listeners.add(listener);
     }
