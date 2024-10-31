@@ -1,12 +1,21 @@
 package com.example.todolist.adapters;
 
+import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todolist.R;
@@ -90,4 +99,5 @@ public class TareaAdapter extends RecyclerView.Adapter<TareaAdapter.TareaViewHol
             horaTarea = itemView.findViewById(R.id.tvHora_rv);
         }
     }
+
 }

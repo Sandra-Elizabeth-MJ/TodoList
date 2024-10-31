@@ -32,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -203,7 +204,7 @@ public class TareaFragment extends Fragment {
         firestoreManager.createTarea(nuevaTarea, new FirestoreManager.FirestoreCallback<String>() {
             @Override
             public void onSuccess(String newTareaId) {
-                Toast.makeText(getContext(), "Tarea creada con éxito. ID: " + newTareaId, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Tarea creada con éxito", Toast.LENGTH_SHORT).show();
                 // Aquí puedes actualizar tu lista local si es necesario
                 nuevaTarea.setId(newTareaId);
                 tareaInfoList.add(nuevaTarea);

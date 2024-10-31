@@ -44,5 +44,6 @@
     <string name="cerrar_sesion">Cerrar Sesión</string>
     <string name="hello_blank_fragment">Hello usuario fragment</string>
     <string name="tareas_completadas">Tareas Completadas</string>
+    <string name="categoria">Categoria</string>
 
 </resources>
