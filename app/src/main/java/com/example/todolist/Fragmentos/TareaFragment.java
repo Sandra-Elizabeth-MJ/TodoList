@@ -146,7 +146,6 @@ public class TareaFragment extends Fragment {
                         if (result.isEmpty()) {
                             hasMoreTareas = false;
                             if (reiniciarPaginacion && tareaInfoList.isEmpty()) {
-                                // Mostrar mensaje si no hay tareas en la categoría
                                 Toast.makeText(requireContext(),
                                         "No hay tareas en esta categoría",
                                         Toast.LENGTH_SHORT).show();
@@ -171,6 +170,7 @@ public class TareaFragment extends Fragment {
                     }
                 });
     }
+
     private void showLoading() {
         progressBar.setVisibility(View.VISIBLE);
     }
@@ -495,29 +495,9 @@ public class TareaFragment extends Fragment {
 
         botonSeleccionado = botonNuevo;
 
-        // Filtrar por la categoría seleccionada
         String categoria = botonNuevo.getText().toString();
         filtrarTareasPorCategoria(categoria);
     }
-
-
-//    private void filtrarTareasPorCategoria(String categoria) {
-//        List<Tarea> tareasFiltradas;
-//        if (categoria.equalsIgnoreCase("Todas")) {
-//            tareasFiltradas = new ArrayList<>(tareaInfoList);
-//        } else {
-//            tareasFiltradas = tareaInfoList.stream()
-//                    .filter(tarea -> tarea.getCategoria().equalsIgnoreCase(categoria))
-//                    .collect(Collectors.toList());
-//        }
-//
-//        if (tareasFiltradas.isEmpty() && !categoria.equalsIgnoreCase("Todas")) {
-//            Toast.makeText(getContext(), "No hay tareas en esta categoría", Toast.LENGTH_SHORT).show();
-//        }
-//
-//        adaptar.actualizarListaTareas(tareasFiltradas);
-//    }
-
 
     private int dpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
@@ -561,7 +541,7 @@ public class TareaFragment extends Fragment {
                     int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
                     if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {
-                        cargarTareasPaginadas(false); // false para continuar la paginación
+                        cargarTareasPaginadas(false);
                     }
                 }
             }
@@ -577,9 +557,15 @@ public class TareaFragment extends Fragment {
             firestoreManager.marcarTareaComoCompletada(tarea, new FirestoreManager.FirestoreCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
-                    // No necesitas eliminar la tarea manualmente aquí
-                    // El listener de Firestore se encargará de actualizar la lista
+                    // Eliminar la tarea de la lista local
+                    tareaInfoList.remove(tarea);
+                    adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
                     Toast.makeText(requireContext(), "Tarea completada exitosamente", Toast.LENGTH_SHORT).show();
+
+                    // Si la lista está vacía después de eliminar, recargar para verificar si hay más tareas
+                    if (tareaInfoList.isEmpty()) {
+                        cargarTareasPaginadas(true);
+                    }
                 }
 
                 @Override
@@ -589,12 +575,20 @@ public class TareaFragment extends Fragment {
                 }
             });
         });
+
         adaptar.setOnTareaDeleteListener(tarea -> {
             firestoreManager.deleteTarea(tarea.getId(), new FirestoreManager.FirestoreCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
+                    // Eliminar la tarea de la lista local
+                    tareaInfoList.remove(tarea);
+                    adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
                     Toast.makeText(requireContext(), "Tarea eliminada exitosamente", Toast.LENGTH_SHORT).show();
-                    // No necesitas actualizar la lista manualmente, el listener de Firestore lo hará
+
+                    // Si la lista está vacía después de eliminar, recargar para verificar si hay más tareas
+                    if (tareaInfoList.isEmpty()) {
+                        cargarTareasPaginadas(true);
+                    }
                 }
 
                 @Override
