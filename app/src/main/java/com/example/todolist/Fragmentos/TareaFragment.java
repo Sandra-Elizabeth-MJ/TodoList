@@ -25,6 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -86,12 +87,15 @@ public class TareaFragment extends Fragment {
 
     private FirestoreManager firestoreManager;
 
+    private boolean isLoading = false;
+    private boolean hasMoreTareas = true;
+    private ProgressBar progressBar;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_tarea, container, false);
         linearLayoutCategorias = rootView.findViewById(R.id.linearLayoutCategorias);
-
+        progressBar = rootView.findViewById(R.id.progressbar_tareas);
         firestoreManager = FirestoreManager.getInstance(requireContext());
         // Inicializar Firebase
         firestore = FirebaseFirestore.getInstance();
@@ -114,6 +118,13 @@ public class TareaFragment extends Fragment {
 
         //createInitialTasks();
         return rootView;
+    }
+    private void showLoading() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        progressBar.setVisibility(View.GONE);
     }
     private void initializeSpinnerAdapter() {
         categorias = new ArrayList<>();
@@ -368,18 +379,53 @@ public class TareaFragment extends Fragment {
     }
 
     private void cargarTareas() {
+        showLoading();
+        isLoading = true;
         firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
             @Override
             public void onSuccess(List<Tarea> result) {
+                hideLoading();
                 tareaInfoList.clear();
                 tareaInfoList.addAll(result);
                 adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+                isLoading = false;
+                hasMoreTareas = !result.isEmpty();
                 cargarCategorias();
             }
 
             @Override
             public void onError(Exception e) {
-                Toast.makeText(requireContext(), "Error al cargar tareas: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                hideLoading();
+                isLoading = false;
+                Toast.makeText(requireContext(), "Error al cargar tareas: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void cargarMasTareas() {
+        if (isLoading) return;
+
+        showLoading();
+        isLoading = true;
+        firestoreManager.getNextTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+            @Override
+            public void onSuccess(List<Tarea> result) {
+                hideLoading();
+                if (result.isEmpty()) {
+                    hasMoreTareas = false;
+                } else {
+                    tareaInfoList.addAll(result);
+                    adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+                }
+                isLoading = false;
+            }
+
+            @Override
+            public void onError(Exception e) {
+                hideLoading();
+                isLoading = false;
+                Toast.makeText(requireContext(), "Error al cargar más tareas: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -436,10 +482,28 @@ public class TareaFragment extends Fragment {
 
     private void setUpRecyclerView() {
         RecyclerView rvTareasInfo = rootView.findViewById(R.id.rvTareas);
-        rvTareasInfo.setLayoutManager(new LinearLayoutManager(requireContext()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        rvTareasInfo.setLayoutManager(layoutManager);
 
         adaptar = new TareaAdapter(tareaInfoList);
         rvTareasInfo.setAdapter(adaptar);
+
+        rvTareasInfo.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (!isLoading && hasMoreTareas && dy > 0) {  // Solo si el scroll es hacia abajo
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {  // Cargar cuando falten 4 items
+                        cargarMasTareas();
+                    }
+                }
+            }
+        });
 
         adaptar.setOnTareaClickListener(tarea -> {
             Intent intent = new Intent(requireActivity(), ActivityDetalleTarea.class);

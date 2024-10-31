@@ -9,8 +9,10 @@ import androidx.annotation.NonNull;
 import com.example.todolist.entities.Tarea;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -26,7 +28,70 @@ public class FirestoreManager {
     private final Context context;
     private boolean isOnline = false;
     private List<ListenerRegistration> listeners = new ArrayList<>();
+    private static final int TAREAS_POR_PAGINA = 10;
+    private DocumentSnapshot lastVisible = null;
 
+    public void getTareas(FirestoreCallback<List<Tarea>> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        Query query = db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", false)
+                .orderBy("fecha")  // Asegúrate de tener un índice para esta consulta
+                .limit(TAREAS_POR_PAGINA);
+
+        ListenerRegistration listener = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            if (e != null) {
+                callback.onError(e);
+                return;
+            }
+            List<Tarea> tareas = new ArrayList<>();
+            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                Tarea tarea = document.toObject(Tarea.class);
+                tarea.setId(document.getId());
+                tareas.add(tarea);
+            }
+
+            // Guardar el último documento visible
+            if (!queryDocumentSnapshots.isEmpty()) {
+                lastVisible = queryDocumentSnapshots.getDocuments()
+                        .get(queryDocumentSnapshots.size() - 1);
+            }
+
+            callback.onSuccess(tareas);
+        });
+        listeners.add(listener);
+    }
+
+    public void getNextTareas(FirestoreCallback<List<Tarea>> callback) {
+        if (lastVisible == null) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        String userId = auth.getCurrentUser().getUid();
+        Query query = db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", false)
+                .orderBy("fecha")
+                .startAfter(lastVisible)
+                .limit(TAREAS_POR_PAGINA);
+
+        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<Tarea> tareas = new ArrayList<>();
+            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                Tarea tarea = document.toObject(Tarea.class);
+                tarea.setId(document.getId());
+                tareas.add(tarea);
+            }
+
+            if (!queryDocumentSnapshots.isEmpty()) {
+                lastVisible = queryDocumentSnapshots.getDocuments()
+                        .get(queryDocumentSnapshots.size() - 1);
+            }
+
+            callback.onSuccess(tareas);
+        }).addOnFailureListener(callback::onError);
+    }
     private FirestoreManager(Context context) {
         this.context = context.getApplicationContext();
         db = FirebaseFirestore.getInstance();
@@ -59,26 +124,7 @@ public class FirestoreManager {
         });
     }
 
-    public void getTareas(FirestoreCallback<List<Tarea>> callback) {
-        String userId = auth.getCurrentUser().getUid();
-        ListenerRegistration listener = db.collection("user").document(userId)
-                .collection("tareas")
-                .whereEqualTo("completada", false) // Añadir este filtro
-                .addSnapshotListener((queryDocumentSnapshots, e) -> {
-                    if (e != null) {
-                        callback.onError(e);
-                        return;
-                    }
-                    List<Tarea> tareas = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Tarea tarea = document.toObject(Tarea.class);
-                        tarea.setId(document.getId());
-                        tareas.add(tarea);
-                    }
-                    callback.onSuccess(tareas);
-                });
-        listeners.add(listener);
-    }
+
 
     public void createTarea(Tarea tarea, FirestoreCallback<String> callback) {
         String userId = auth.getCurrentUser().getUid();
