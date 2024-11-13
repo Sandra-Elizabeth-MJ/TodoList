@@ -28,11 +28,15 @@ public class FirestoreManager {
     private final Context context;
     private boolean isOnline = false;
     private List<ListenerRegistration> listeners = new ArrayList<>();
-    private static final int TAREAS_POR_PAGINA = 10;
+    private static final int TAREAS_POR_PAGINA = 7;
     private DocumentSnapshot lastVisible = null;
-    private String currentCategoria = null; // Para controlar la categoría actual
+    private String currentCategoria = null;
+
+
+    // Para controlar la categoría actual
     public void getTareas(FirestoreCallback<List<Tarea>> callback) {
         String userId = auth.getCurrentUser().getUid();
+
         ListenerRegistration listener = db.collection("user").document(userId)
                 .collection("tareas")
                 .whereEqualTo("completada", false) // Añadir este filtro
@@ -125,6 +129,7 @@ public class FirestoreManager {
             callback.onSuccess(tareas);
         }).addOnFailureListener(callback::onError);
     }
+
     private FirestoreManager(Context context) {
         this.context = context.getApplicationContext();
         db = FirebaseFirestore.getInstance();

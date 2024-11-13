@@ -90,7 +90,7 @@ public class TareaFragment extends Fragment {
     private boolean isLoading = false;
     private boolean hasMoreTareas = true;
     private ProgressBar progressBar;
-    private String currentCategoria = "Todas"; // Categoría por defecto
+    private String currentCategoria; // Categoría por defecto
 
     private MediaPlayer mediaPlayer;
     @Override
@@ -259,6 +259,7 @@ public class TareaFragment extends Fragment {
 
         Toast.makeText(requireContext(), "Iniciando creación de 300 tareas...", Toast.LENGTH_LONG).show();
     }
+
     private void lanzarAddTarea() {
         FloatingActionButton btnCreateActividad = rootView.findViewById(R.id.fbtn_detalleTarea);
         btnCreateActividad.setOnClickListener(view -> {
@@ -390,6 +391,7 @@ public class TareaFragment extends Fragment {
             }
         });
     }
+
     private void actualizarBotonesCategorias() {
         linearLayoutCategorias.removeAllViews();
         agregarBotonTodasLasCategorias();
@@ -483,7 +485,7 @@ public class TareaFragment extends Fragment {
                 });
     }
 
-
+   //boton al seleccionar la categoria
     private void seleccionarBoton(Button botonNuevo) {
         if (botonSeleccionado != null) {
             botonSeleccionado.setSelected(false);
@@ -603,6 +605,7 @@ public class TareaFragment extends Fragment {
             });
         });
     }
+
     private void playCompletionSound() {
         try {
             if (mediaPlayer != null) {
