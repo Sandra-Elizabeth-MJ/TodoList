@@ -231,7 +231,7 @@ public class FirestoreManager {
     public void marcarTareaComoCompletada(Tarea tarea, FirestoreCallback<Void> callback) {
         String userId = auth.getCurrentUser().getUid();
         tarea.setCompletada(true);
-        tarea.setFechaCompletada(new java.text.SimpleDateFormat("yyyy/MM/dd",
+        tarea.setFechaCompletada(new java.text.SimpleDateFormat("dd/MM/yyyy",
                 java.util.Locale.getDefault()).format(new java.util.Date()));
 
         db.collection("user").document(userId)
