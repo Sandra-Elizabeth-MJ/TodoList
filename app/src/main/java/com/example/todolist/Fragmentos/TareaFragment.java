@@ -180,10 +180,12 @@ public class TareaFragment extends Fragment {
     private void hideLoading() {
         progressBar.setVisibility(View.GONE);
     }
+
     private void initializeSpinnerAdapter() {
         categorias = new ArrayList<>();
         spinnerAdapter = new CategoriaAdapter(requireContext(), categorias);
     }
+    //Metodo para cargar 300 tareas
     private void createInitialTasks() {
         String[] categorias = {"Cumpleaños", "Trabajo", "Diario"};
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -260,6 +262,7 @@ public class TareaFragment extends Fragment {
         Toast.makeText(requireContext(), "Iniciando creación de 300 tareas...", Toast.LENGTH_LONG).show();
     }
 
+    //dialog de tareas
     private void lanzarAddTarea() {
         FloatingActionButton btnCreateActividad = rootView.findViewById(R.id.fbtn_detalleTarea);
         btnCreateActividad.setOnClickListener(view -> {
@@ -336,6 +339,20 @@ public class TareaFragment extends Fragment {
 
         builder.show();
     }
+    private void guardarNuevaCategoria(String nombreCategoria) {
+        firestoreManager.createCategoria(nombreCategoria, new FirestoreManager.FirestoreCallback<String>() {
+            @Override
+            public void onSuccess(String newCategoriaId) {
+                Toast.makeText(requireActivity(), "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
+                // La UI se actualizará automáticamente gracias al SnapshotListener en getCategorias
+            }
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(requireActivity(), "Error al crear categoría: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void crearTarea(String nombre, String fecha, String hora, String categoriaSeleccionada) {
         Tarea nuevaTarea = new Tarea(nombre, fecha, hora, categoriaSeleccionada);
         nuevaTarea.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -353,20 +370,6 @@ public class TareaFragment extends Fragment {
             @Override
             public void onError(Exception e) {
                 Toast.makeText(requireActivity(), "Error al crear tarea: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-    private void guardarNuevaCategoria(String nombreCategoria) {
-        firestoreManager.createCategoria(nombreCategoria, new FirestoreManager.FirestoreCallback<String>() {
-            @Override
-            public void onSuccess(String newCategoriaId) {
-                Toast.makeText(requireActivity(), "Categoría creada con éxito", Toast.LENGTH_SHORT).show();
-                // La UI se actualizará automáticamente gracias al SnapshotListener en getCategorias
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Toast.makeText(requireActivity(), "Error al crear categoría: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -401,7 +404,6 @@ public class TareaFragment extends Fragment {
             }
         }
     }
-
 
     @SuppressLint("ResourceAsColor")
     private void agregarBotonCategoria(String nombreCategoria) {
@@ -650,6 +652,7 @@ public class TareaFragment extends Fragment {
                 }, hour, minute, true);
         timePickerDialog.show();
     }
+
     //metodos para menut del toolbar
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
@@ -684,6 +687,7 @@ public class TareaFragment extends Fragment {
 
         return super.onOptionsItemSelected(item);
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

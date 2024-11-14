@@ -156,12 +156,14 @@ public class FirestoreManager {
             @Override
             public void onAvailable(@NonNull Network network) {
                 isOnline = true;
+                Log.d(TAG, "Conexión de red disponible.");
                 // Aquí puedes implementar lógica adicional cuando la conexión se restablece
             }
 
             @Override
             public void onLost(@NonNull Network network) {
                 isOnline = false;
+                Log.d(TAG, "Conexión de red perdida.");
                 // Aquí puedes implementar lógica adicional cuando se pierde la conexión
             }
         });

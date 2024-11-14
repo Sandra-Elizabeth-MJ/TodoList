@@ -1,15 +1,46 @@
 package com.example.todolist.entities;
 
 public class Usuario {
-    String email,
-            password;
+    private String id;
+    private String nombre;
+    private String apellidos;
+    private String email;
 
     public Usuario() {
+        // Constructor vacío requerido para Firestore
     }
 
-    public Usuario(String email, String password) {
+    public Usuario(String id, String nombre, String apellidos, String email) {
+        this.id = id;
+        this.nombre = nombre;
+        this.apellidos = apellidos;
         this.email = email;
-        this.password = password;
+    }
+
+    // Getter y Setter para id
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    // Resto de Getters y Setters
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getApellidos() {
+        return apellidos;
+    }
+
+    public void setApellidos(String apellidos) {
+        this.apellidos = apellidos;
     }
 
     public String getEmail() {
@@ -18,13 +49,5 @@ public class Usuario {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }
