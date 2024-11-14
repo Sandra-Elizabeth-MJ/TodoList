@@ -32,11 +32,35 @@
                 android:textSize="36sp"
                 android:textStyle="bold" />
             <EditText
+                android:id="@+id/registrarse_nombre"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/custom_edittext"
+                android:layout_marginTop="15dp"
+                android:padding="8dp"
+                android:hint="@string/nombre"
+                android:drawableStart="@drawable/ic_person"
+                android:drawableTint="@color/splash"
+                android:drawablePadding="8dp"
+                android:textColor="@color/black"/>
+            <EditText
+                android:id="@+id/registrarse_apellidos"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/custom_edittext"
+                android:layout_marginTop="10dp"
+                android:padding="8dp"
+                android:hint="@string/apellidos"
+                android:drawableStart="@drawable/ic_person"
+                android:drawableTint="@color/splash"
+                android:drawablePadding="8dp"
+                android:textColor="@color/black"/>
+            <EditText
                 android:id="@+id/registrarse_email"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:background="@drawable/custom_edittext"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="10dp"
                 android:padding="8dp"
                 android:hint="@string/email"
                 android:drawableStart="@drawable/ic_email"
@@ -46,7 +70,7 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_marginTop="20dp">
+                android:layout_marginTop="10dp">
                 <EditText
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -74,7 +98,7 @@
                 android:text="@string/registrarse"
                 android:id="@+id/registrarse_button"
                 android:textSize="18sp"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="10dp"
                 android:backgroundTint="@color/splash"
                 app:cornerRadius = "20dp"/>
             <TextView

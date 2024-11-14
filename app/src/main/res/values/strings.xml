@@ -45,5 +45,7 @@
     <string name="hello_blank_fragment">Hello usuario fragment</string>
     <string name="tareas_completadas">Tareas Completadas</string>
     <string name="categoria">Categoria</string>
+    <string name="nombre">Nombre</string>
+    <string name="apellidos">Apellidos</string>
 
 </resources>

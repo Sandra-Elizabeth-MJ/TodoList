@@ -3,6 +3,7 @@ package com.example.todolist.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,12 +11,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -23,23 +20,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import com.example.todolist.R;
-import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class ActivityRegistrarse extends AppCompatActivity {
 
      FirebaseAuth auth;
-     EditText signupEmail, signupPassword;
+     EditText signupNombre,signupApellidos,signupEmail, signupPassword;
      Button signupButton;
      TextView loginRedirectText;
      ImageView passwordShowRegis;
@@ -49,9 +41,10 @@ public class ActivityRegistrarse extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registrarse);
 
+        signupNombre = findViewById(R.id.registrarse_nombre);
+        signupApellidos=findViewById(R.id.registrarse_apellidos);
         signupEmail = findViewById(R.id.registrarse_email);
         signupPassword = findViewById(R.id.registrarse_password);
         signupButton = findViewById(R.id.registrarse_button);
@@ -65,12 +58,14 @@ public class ActivityRegistrarse extends AppCompatActivity {
             signupButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    String nombre =signupNombre.getText().toString().trim();
+                    String apellidos = signupApellidos.getText().toString().trim();
                     String email = signupEmail.getText().toString().trim();
                     String pass = signupPassword.getText().toString().trim();
-                    if (email.isEmpty() && pass.isEmpty())
+                    if (email.isEmpty() && pass.isEmpty() && nombre.isEmpty() && apellidos.isEmpty())
                         Toast.makeText(ActivityRegistrarse.this, "Completar los datos", Toast.LENGTH_SHORT).show();
                     else{
-                        registreUser(email,pass);
+                        registreUser(email,pass,nombre,apellidos);
                     }
 
                 }
@@ -108,36 +103,46 @@ public class ActivityRegistrarse extends AppCompatActivity {
 
 
     }
-    private void registreUser(String email, String password) {
+    private void registreUser(String email, String password, String nombre, String apellidos) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                String id = auth.getCurrentUser().getUid();
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", id);
-                map.put("email", email);
-                map.put("contraseña", password);
+                if (task.isSuccessful()) {  // Verificar si la creación del usuario fue exitosa
+                    String id = auth.getCurrentUser().getUid();
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", id);
+                    map.put("email", email);
+                    map.put("contraseña", password);
+                    map.put("nombre", nombre);
+                    map.put("apellidos", apellidos);
 
-                mfirestore.collection("user").document(id).set(map).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        finish();
-                        startActivity(new Intent(ActivityRegistrarse.this,ActivityLogin.class));
-                        Toast.makeText(ActivityRegistrarse.this, "Usuario registrado con exito", Toast.LENGTH_SHORT).show();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(ActivityRegistrarse.this, "Error al guardar", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(ActivityRegistrarse.this, "ERROR AL REGISTRAR", Toast.LENGTH_SHORT).show();
+                    mfirestore.collection("user").document(id).set(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            Log.d("ActivityRegistrarse", "Datos del usuario guardados en Firestore");
+                            Toast.makeText(ActivityRegistrarse.this, "Usuario registrado con éxito", Toast.LENGTH_SHORT).show();
+
+                            // Asegurarnos de que el usuario esté completamente registrado antes de redirigir
+                            auth.signOut(); // Cerramos la sesión del registro
+
+                            Intent loginIntent = new Intent(ActivityRegistrarse.this, ActivityLogin.class);
+                            loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(loginIntent);
+                            finish();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("ActivityRegistrarse", "Error al guardar en Firestore: " + e.getMessage());
+                            Toast.makeText(ActivityRegistrarse.this, "Error al guardar", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    // Si la creación del usuario falla
+                    Toast.makeText(ActivityRegistrarse.this, "Error al registrar: " + Objects.requireNonNull(task.getException()).getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
-
 }

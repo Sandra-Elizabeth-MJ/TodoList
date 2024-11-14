@@ -62,7 +62,7 @@
                     android:id="@+id/userName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nombre"
+                    android:text="@string/nombre"
                     android:textColor="@android:color/darker_gray"
                     android:textSize="17sp" />
 
@@ -80,7 +80,7 @@
                     android:id="@+id/userapellidos"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Apellidos"
+                    android:text="@string/apellidos"
                     android:textColor="@android:color/darker_gray"
                     android:textSize="17sp" />
 
