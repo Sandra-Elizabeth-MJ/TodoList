@@ -38,6 +38,8 @@ public class TareaCompletadaAdapter extends RecyclerView.Adapter<TareaCompletada
         holder.nombreTarea.setPaintFlags(holder.nombreTarea.getPaintFlags() |
                 android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
         holder.fechaCompletada.setText(tarea.getFechaCompletada());
+        holder.fechaInicial.setText(tarea.getFecha());
+        holder.horaInical.setText(tarea.getHora());
     }
 
     @Override
@@ -49,12 +51,16 @@ public class TareaCompletadaAdapter extends RecyclerView.Adapter<TareaCompletada
         RadioButton radioButton;
         TextView nombreTarea;
         TextView fechaCompletada;
+        TextView fechaInicial;
+        TextView horaInical;
 
         ViewHolder(View itemView) {
             super(itemView);
             radioButton = itemView.findViewById(R.id.rbtn_tarea_completada);
             nombreTarea = itemView.findViewById(R.id.tv_tarea_completada);
             fechaCompletada = itemView.findViewById(R.id.tv_fecha_completada);
+            fechaInicial = itemView.findViewById(R.id.tvFechaInicial_tc);
+            horaInical = itemView.findViewById(R.id.tvHoraInical_tc);
         }
     }
 }

@@ -61,7 +61,7 @@
         <EditText
             android:id="@+id/etfecha"
             android:layout_width="match_parent"
-            android:hint="@string/mm_dd_aaaa"
+            android:hint="@string/dd_mm_aaaa"
             android:layout_height="wrap_content"
             android:layout_margin="8dp" />
     </LinearLayout>

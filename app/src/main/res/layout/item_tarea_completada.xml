@@ -13,12 +13,39 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="3dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginStart="4dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fecha Completada: "
+                android:textColor="@color/splash"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_fecha_completada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/splash"
+                android:textSize="15sp"
+                android:layout_marginStart="8dp"
+                android:hint="@string/dd_mm_aaaa"
+                android:textStyle="bold"
+                android:layout_marginEnd="20dp"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="6dp">
+            android:padding="5dp">
 
             <RadioButton
                 android:id="@+id/rbtn_tarea_completada"
@@ -34,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/tareas"
                 android:textColor="@android:color/darker_gray"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginEnd="8dp"/>
         </LinearLayout>
@@ -44,19 +71,35 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="6dp"
-            android:layout_marginStart="65dp">
-
+            android:layout_marginBottom="4dp"
+            android:layout_marginStart="60dp">
             <TextView
-                android:id="@+id/tv_fecha_completada"
+                android:id="@+id/tvFechaInicial_tc"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="15sp"
-                android:hint="@string/mm_dd_aaaa"
-                android:layout_marginEnd="20dp"/>
+                android:hint="@string/dd_mm_aaaa"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvHoraInical_tc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="15sp"
+                android:hint="@string/hh_mm_tt"
+                android:layout_marginEnd="2dp" />
+
+            <ImageView
+                android:id="@+id/icnotificacion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_notificacion"
+                android:contentDescription="@string/hora_y_recordatorio"/>
         </LinearLayout>
+
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

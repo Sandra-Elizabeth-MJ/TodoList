@@ -31,7 +31,7 @@
     <string name="nueva_tarea">Nueva Tarea:</string>
     <string name="fecha">Fecha:</string>
     <string name="hora">Hora:</string>
-    <string name="mm_dd_aaaa">MM/dd/aaaa</string>
+    <string name="dd_mm_aaaa">dd/MM/aaaa</string>
     <string name="hh_mm_tt">hh:mm tt</string>
     <string name="password">Password</string>
     <string name="registrarse">Registrarse</string>

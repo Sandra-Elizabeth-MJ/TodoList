@@ -107,7 +107,7 @@
                 android:background="@drawable/boton_categoria"
                 android:padding="4dp"
                 android:textAlignment="center"
-                android:hint="@string/mm_dd_aaaa"
+                android:hint="@string/dd_mm_aaaa"
                 android:textColor="#525356"
                 android:textSize="15sp"/>
         </LinearLayout>

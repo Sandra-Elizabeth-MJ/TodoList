@@ -78,7 +78,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/azulA1"
                 android:textSize="15sp"
-                android:hint="@string/mm_dd_aaaa"
+                android:hint="@string/dd_mm_aaaa"
                 android:layout_marginEnd="20dp" />
 
             <TextView
