@@ -86,6 +86,7 @@ public class TareaAdapter extends RecyclerView.Adapter<TareaAdapter.TareaViewHol
     @Override
     public void onBindViewHolder(@NonNull TareaViewHolder holder, int position) {
         Tarea tarea = tareas.get(position);
+        //Log que muestra la carga de tareas
         Log.d("TareaAdapter", "Tarea: " + tarea.getNombre());
         holder.bind(tarea);
 

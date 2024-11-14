@@ -3,11 +3,13 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkRequest;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.example.todolist.entities.Tarea;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,6 +33,9 @@ public class FirestoreManager {
     private static final int TAREAS_POR_PAGINA = 7;
     private DocumentSnapshot lastVisible = null;
     private String currentCategoria = null;
+
+    //Para los Log
+    private static final String TAG = "FirestoreManager";
 
 
     // Para controlar la categoría actual
@@ -299,6 +304,26 @@ public class FirestoreManager {
                             .addOnFailureListener(callback::onError);
                 })
                 .addOnFailureListener(callback::onError);
+    }
+    //Metodo conteo tareas completadas y pendientes
+    public void getTaskCount(boolean isCompleted, FirestoreCallback<Long> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        Log.d(TAG, "Obteniendo el conteo de tareas para completadas=" + isCompleted + ", userId=" + userId);
+
+        db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", isCompleted)
+                .count()
+                .get(AggregateSource.SERVER)  // Especificamos la fuente para la consulta de agregación
+                .addOnSuccessListener(snapshot -> {
+                    long count = snapshot.getCount();
+                    Log.d(TAG, "Conteo obtenido con éxito: " + count + " para completadas=" + isCompleted);
+                    callback.onSuccess(count);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al obtener el conteo para completadas=" + isCompleted, e);
+                    callback.onError(e);
+                });
     }
 
     public boolean isOnline() {

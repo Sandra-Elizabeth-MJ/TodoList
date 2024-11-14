@@ -27,7 +27,7 @@ import java.util.List;
 
 
 public class UsuarioFragment extends Fragment {
-
+    private static final String TAG = "UsuarioFragment";
     private View rootView;
     private TextView tvCantidadTareasCompletadas;
     private TextView tvCantidadTareasPendientes;
@@ -62,36 +62,36 @@ public class UsuarioFragment extends Fragment {
     }
 
     private void loadTaskCounts() {
-        // Obtener tareas completadas
-        firestoreManager.getTareasCompletadas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+        // Obtener conteo de tareas completadas
+        firestoreManager.getTaskCount(true, new FirestoreManager.FirestoreCallback<Long>() {
             @Override
-            public void onSuccess(List<Tarea> tareasCompletadas) {
-                if (isAdded()) { // Verificar que el fragmento esté adjunto
-                    tvCantidadTareasCompletadas.setText(String.valueOf(tareasCompletadas.size()));
+            public void onSuccess(Long count) {
+                if (isAdded()) {
+                    tvCantidadTareasCompletadas.setText(String.valueOf(count));
                 }
             }
 
             @Override
             public void onError(Exception e) {
                 if (isAdded()) {
-                    Toast.makeText(getContext(), "Error al cargar tareas completadas", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Error al cargar conteo de tareas completadas", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        // Obtener tareas pendientes
-        firestoreManager.getTareas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+        // Obtener conteo de tareas pendientes
+        firestoreManager.getTaskCount(false, new FirestoreManager.FirestoreCallback<Long>() {
             @Override
-            public void onSuccess(List<Tarea> tareasPendientes) {
-                if (isAdded()) { // Verificar que el fragmento esté adjunto
-                    tvCantidadTareasPendientes.setText(String.valueOf(tareasPendientes.size()));
+            public void onSuccess(Long count) {
+                if (isAdded()) {
+                    tvCantidadTareasPendientes.setText(String.valueOf(count));
                 }
             }
 
             @Override
             public void onError(Exception e) {
                 if (isAdded()) {
-                    Toast.makeText(getContext(), "Error al cargar tareas pendientes", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Error al cargar conteo de tareas pendientes", Toast.LENGTH_SHORT).show();
                 }
             }
         });
