@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -326,6 +327,74 @@ public class FirestoreManager {
                     Log.e(TAG, "Error al obtener el conteo para completadas=" + isCompleted, e);
                     callback.onError(e);
                 });
+    }
+    public void contarTareasPorCategoria(String categoria, FirestoreCallback<Long> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        Query query = db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", false);
+
+        if (!categoria.equals("Todas")) {
+            query = query.whereEqualTo("categoria", categoria);
+        }
+
+        query.count().get(AggregateSource.SERVER)
+                .addOnSuccessListener(snapshot -> {
+                    long count = snapshot.getCount();
+                    callback.onSuccess(count);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+    public void deleteCategoria(String categoria, FirestoreCallback<Void> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        db.collection("user").document(userId)
+                .collection("categorias")
+                .whereEqualTo("nombre", categoria)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    WriteBatch batch = db.batch();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        batch.delete(document.getReference());
+                    }
+                    batch.commit()
+                            .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                            .addOnFailureListener(callback::onError);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+    public void updateCategoria(String categoriaAntigua, String categoriaNueva, FirestoreCallback<Void> callback) {
+        String userId = auth.getCurrentUser().getUid();
+        WriteBatch batch = db.batch();
+
+        // Primero, actualizar el documento de la categoría
+        db.collection("user").document(userId)
+                .collection("categorias")
+                .whereEqualTo("nombre", categoriaAntigua)
+                .get()
+                .addOnSuccessListener(categorySnapshots -> {
+                    // Actualizar la categoría
+                    for (QueryDocumentSnapshot document : categorySnapshots) {
+                        batch.update(document.getReference(), "nombre", categoriaNueva);
+                    }
+
+                    // Luego, actualizar todas las tareas que usen esta categoría
+                    db.collection("user").document(userId)
+                            .collection("tareas")
+                            .whereEqualTo("categoria", categoriaAntigua)
+                            .get()
+                            .addOnSuccessListener(taskSnapshots -> {
+                                for (QueryDocumentSnapshot document : taskSnapshots) {
+                                    batch.update(document.getReference(), "categoria", categoriaNueva);
+                                }
+
+                                // Ejecutar todas las actualizaciones
+                                batch.commit()
+                                        .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                                        .addOnFailureListener(callback::onError);
+                            })
+                            .addOnFailureListener(callback::onError);
+                })
+                .addOnFailureListener(callback::onError);
     }
 
     public boolean isOnline() {
