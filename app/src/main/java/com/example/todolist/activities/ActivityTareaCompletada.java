@@ -36,13 +36,13 @@ public class ActivityTareaCompletada extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
         }
 
         // Configurar RecyclerView
         RecyclerView recyclerView = findViewById(R.id.rvTareasCompletadas);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TareaCompletadaAdapter(tareasCompletadas);
+        adapter = new TareaCompletadaAdapter(tareasCompletadas, firestoreManager, this);
         recyclerView.setAdapter(adapter);
 
 
@@ -50,13 +50,13 @@ public class ActivityTareaCompletada extends AppCompatActivity {
         // Cargar tareas completadas
         cargarTareasCompletadas();
     }
-    private void cargarTareasCompletadas() {
+    public void cargarTareasCompletadas() { // Cambiado a público
         firestoreManager.getTareasCompletadas(new FirestoreManager.FirestoreCallback<List<Tarea>>() {
             @Override
             public void onSuccess(List<Tarea> result) {
                 tareasCompletadas.clear();
                 tareasCompletadas.addAll(result);
-                adapter.notifyDataSetChanged();
+                adapter.updateTareas(new ArrayList<>(result));
             }
 
             @Override

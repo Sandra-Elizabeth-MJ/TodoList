@@ -15,16 +15,8 @@
         android:background="@color/plomoA1"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
+        app:title="Tiempo completado"
         app:menu="@menu/toolbar_tareas_completadas"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Tiempo completado"
-        android:textAlignment="center"
-        android:textColor="@color/azulA1"
-        android:textSize="20sp"
-        android:padding="10dp"
-        android:textStyle="bold"/>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTareasCompletadas"
         android:layout_width="match_parent"
