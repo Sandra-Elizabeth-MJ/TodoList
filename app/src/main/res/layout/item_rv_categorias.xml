@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="10dp"
+    app:cardUseCompatPadding="true"
+    android:backgroundTint="@color/white"
+    android:elevation="15dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="6dp">
+
+        <ImageView
+            android:id="@+id/icnotificacion"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_circle"
+            android:contentDescription="@string/hora_y_recordatorio"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tv_nombreCategoria"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:hint="@string/categoria"
+            android:layout_marginEnd="20dp" />
+        <TextView
+            android:id="@+id/tv_cant_tareas_categoria"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:hint="0"
+            android:layout_marginEnd="20dp" />
+
+        <ImageButton
+            android:id="@+id/btn_editar_categoria"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@color/white"
+            android:contentDescription="Edit Profile"
+            android:padding="8dp"
+            android:src="@drawable/ic_edit_usuario" />
+
+        <ImageButton
+            android:id="@+id/btn_eliminar_categoria"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@color/white"
+            android:contentDescription="Eliminar tarea"
+            android:padding="5dp"
+            android:src="@drawable/ic_delete_tarea" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

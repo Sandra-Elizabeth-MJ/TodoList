@@ -47,5 +47,6 @@
     <string name="categoria">Categoria</string>
     <string name="nombre">Nombre</string>
     <string name="apellidos">Apellidos</string>
+    <string name="crear_nueva">Crear Nueva</string>
 
 </resources>
