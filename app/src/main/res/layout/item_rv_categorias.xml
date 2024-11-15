@@ -26,20 +26,20 @@
 
         <TextView
             android:id="@+id/tv_nombreCategoria"
-            android:layout_width="wrap_content"
+            android:layout_width="210dp"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:hint="@string/categoria"
-            android:layout_marginEnd="20dp" />
+            android:layout_marginEnd="10dp" />
         <TextView
             android:id="@+id/tv_cant_tareas_categoria"
-            android:layout_width="wrap_content"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:hint="0"
-            android:layout_marginEnd="20dp" />
+            android:layout_marginEnd="2dp" />
 
         <ImageButton
             android:id="@+id/btn_editar_categoria"

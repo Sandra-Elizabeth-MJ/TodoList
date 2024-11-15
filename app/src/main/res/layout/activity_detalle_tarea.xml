@@ -6,10 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
     android:background="@color/plomoA2"
     tools:context=".activities.ActivityDetalleTarea">
-
     <!-- Toolbar -->
 
     <!-- Spinner para las categorías -->
@@ -17,26 +15,30 @@
         android:id="@+id/toolbar_dettalle_tarea"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/plomoA2"
+        android:background="@color/plomoA1"
+        app:titleTextColor="@color/azulA1"
         android:layout_marginTop="0dp"
         android:elevation="3dp"
+        app:title="Detalle de Tarea"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme" />
 
+    <!-- Campo de texto con información de detalles -->
     <Spinner
         android:id="@+id/spinnerCategories"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="17dp"/>
 
-    <!-- Campo de texto con información de detalles -->
     <EditText
         android:id="@+id/tvDetailInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="20dp"
         android:background="@android:color/transparent"
         android:layout_marginBottom="8dp"/>
 
@@ -45,6 +47,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:padding="20dp"
         android:layout_marginTop="50dp">
 
         <!-- Agregar Subtarea -->
@@ -229,7 +232,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
-        android:layout_margin="16dp"
+        android:layout_margin="20dp"
         android:src="@drawable/ic_send"
         app:backgroundTint="@color/celesteA1"/>
 

@@ -105,36 +105,7 @@ public class FirestoreManager {
             callback.onSuccess(tareas);
         }).addOnFailureListener(callback::onError);
     }
-    public void getNextTareas(FirestoreCallback<List<Tarea>> callback) {
-        if (lastVisible == null) {
-            callback.onSuccess(new ArrayList<>());
-            return;
-        }
 
-        String userId = auth.getCurrentUser().getUid();
-        Query query = db.collection("user").document(userId)
-                .collection("tareas")
-                .whereEqualTo("completada", false)
-                .orderBy("fecha")
-                .startAfter(lastVisible)
-                .limit(TAREAS_POR_PAGINA);
-
-        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
-            List<Tarea> tareas = new ArrayList<>();
-            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                Tarea tarea = document.toObject(Tarea.class);
-                tarea.setId(document.getId());
-                tareas.add(tarea);
-            }
-
-            if (!queryDocumentSnapshots.isEmpty()) {
-                lastVisible = queryDocumentSnapshots.getDocuments()
-                        .get(queryDocumentSnapshots.size() - 1);
-            }
-
-            callback.onSuccess(tareas);
-        }).addOnFailureListener(callback::onError);
-    }
 
     private FirestoreManager(Context context) {
         this.context = context.getApplicationContext();
@@ -362,6 +333,7 @@ public class FirestoreManager {
                 })
                 .addOnFailureListener(callback::onError);
     }
+
     public void updateCategoria(String categoriaAntigua, String categoriaNueva, FirestoreCallback<Void> callback) {
         String userId = auth.getCurrentUser().getUid();
         WriteBatch batch = db.batch();

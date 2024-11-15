@@ -139,32 +139,6 @@ public class CategoriaListaAdapter extends RecyclerView.Adapter<CategoriaListaAd
         });
     }
 
-    private void actualizarCategoria(String categoriaAntigua, String categoriaNueva, int position) {
-        // Primero crear la nueva categoría
-        firestoreManager.createCategoria(categoriaNueva, new FirestoreManager.FirestoreCallback<String>() {
-            @Override
-            public void onSuccess(String result) {
-                // Actualizar la lista local
-                categorias.set(position, categoriaNueva);
-                notifyItemChanged(position);
-                Toast.makeText(context, "Categoría actualizada", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Toast.makeText(context, "Error al actualizar: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void eliminarCategoria(String categoria, int position) {
-        // Implementar la eliminación en Firestore
-        // Nota: Necesitarás agregar un método deleteCategoria en FirestoreManager
-        categorias.remove(position);
-        notifyItemRemoved(position);
-        Toast.makeText(context, "Categoría eliminada", Toast.LENGTH_SHORT).show();
-    }
 
     @Override
     public int getItemCount() {
