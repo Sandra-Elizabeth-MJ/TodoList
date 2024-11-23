@@ -7,6 +7,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -62,9 +63,11 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import retrofit2.Call;
@@ -97,6 +100,11 @@ public class TareaFragment extends Fragment {
     private String currentSearchQuery = "";
 
     private MediaPlayer mediaPlayer;
+    private String ultimaCategoriaSeleccionada = "Todas"; // Valor por defecto
+    private static final String PREF_NAME = "TareaFragmentPrefs";
+    private static final String KEY_LAST_CATEGORY = "lastSelectedCategory";
+    // Agregar esta variable al inicio de la clase
+    private Handler searchHandler = new Handler(Looper.getMainLooper());
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -104,16 +112,21 @@ public class TareaFragment extends Fragment {
         linearLayoutCategorias = rootView.findViewById(R.id.linearLayoutCategorias);
         progressBar = rootView.findViewById(R.id.progressbar_tareas);
         firestoreManager = FirestoreManager.getInstance(requireContext());
+
         // Inicializar Firebase
         firestore = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         userId = auth.getCurrentUser().getUid();
 
+        // Cargar la última categoría seleccionada desde SharedPreferences
+        ultimaCategoriaSeleccionada = getLastSelectedCategory();
+        currentCategoria = ultimaCategoriaSeleccionada;
+
         // Inicializar variables de paginación
         isLoading = false;
         hasMoreTareas = true;
-        currentCategoria = "Todas";
         mediaPlayer = MediaPlayer.create(requireContext(), R.raw.task_complete);
+
         initializeSpinnerAdapter();
         setUpRecyclerView();
         lanzarAddTarea();
@@ -124,12 +137,22 @@ public class TareaFragment extends Fragment {
         if (getActivity() != null) {
             ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         }
-        // Inflar el menú
         setHasOptionsMenu(true);
-        // inicializar la clase de sincronizacion
 
-        //createInitialTasks();
         return rootView;
+    }
+    // Método para guardar la última categoría seleccionada
+    private void saveLastSelectedCategory(String category) {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(KEY_LAST_CATEGORY, category);
+        editor.apply();
+    }
+
+    // Método para obtener la última categoría seleccionada
+    private String getLastSelectedCategory() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(KEY_LAST_CATEGORY, "Todas");
     }
     private void filtrarTareasPorCategoria(String categoria) {
         currentCategoria = categoria;
@@ -439,7 +462,25 @@ public class TareaFragment extends Fragment {
                 categorias.addAll(result);
                 categorias.add("Crear nueva categoría");
                 spinnerAdapter.notifyDataSetChanged();
-                actualizarBotonesCategorias();
+
+                // Limpiar todos los botones existentes
+                linearLayoutCategorias.removeAllViews();
+
+                // Agregar el botón "Todas" primero
+                agregarBotonTodasLasCategorias();
+
+                // Agregar el resto de categorías
+                for (String categoria : categorias) {
+                    if (!categoria.equals("Crear nueva categoría")) {
+                        agregarBotonCategoria(categoria);
+                    }
+                }
+
+                // Seleccionar la última categoría guardada
+                new Handler().postDelayed(() -> {
+                    String lastCategory = getLastSelectedCategory();
+                    seleccionarBotonPorCategoria(lastCategory);
+                }, 100);
             }
 
             @Override
@@ -484,7 +525,7 @@ public class TareaFragment extends Fragment {
 
         button.setOnClickListener(v -> {
             seleccionarBoton(button);
-            filtrarTareasPorCategoria(nombreCategoria);
+            //filtrarTareasPorCategoria(nombreCategoria);
         });
 
         linearLayoutCategorias.addView(button);
@@ -493,12 +534,11 @@ public class TareaFragment extends Fragment {
     private void cargarTareas() {
         showLoading();
         isLoading = true;
-        currentCategoria = "Todas"; // Establecemos la categoría inicial
-        tareaInfoList.clear(); // Limpiamos la lista actual
-        adaptar.actualizarListaTareas(new ArrayList<>()); // Limpiamos el adaptador
-        hasMoreTareas = true; // Reiniciamos el flag de paginación
+        //currentCategoria = "Todas";
+        tareaInfoList.clear();
+        adaptar.actualizarListaTareas(new ArrayList<>());
+        hasMoreTareas = true;
 
-        // Usamos getTareasPaginadas con reinicio de paginación
         firestoreManager.getTareasPaginadas(currentCategoria, true,
                 new FirestoreManager.FirestoreCallback<List<Tarea>>() {
                     @Override
@@ -515,19 +555,7 @@ public class TareaFragment extends Fragment {
                             hasMoreTareas = true;
                         }
                         isLoading = false;
-                        cargarCategorias(); // Cargamos las categorías después de las tareas
-
-                        // Aseguramos que el botón "Todas" esté seleccionado inicialmente
-                        for (int i = 0; i < linearLayoutCategorias.getChildCount(); i++) {
-                            View child = linearLayoutCategorias.getChildAt(i);
-                            if (child instanceof Button) {
-                                Button button = (Button) child;
-                                if (button.getText().toString().equals("Todas")) {
-                                    seleccionarBoton(button);
-                                    break;
-                                }
-                            }
-                        }
+                        cargarCategorias();
                     }
 
                     @Override
@@ -541,7 +569,9 @@ public class TareaFragment extends Fragment {
                 });
     }
 
-   //boton al seleccionar la categoria
+
+
+    //boton al seleccionar la categoria
     private void seleccionarBoton(Button botonNuevo) {
         if (botonSeleccionado != null) {
             botonSeleccionado.setSelected(false);
@@ -551,24 +581,63 @@ public class TareaFragment extends Fragment {
 
         botonNuevo.setSelected(true);
         botonNuevo.setTextColor(Color.WHITE);
-        botonNuevo.setBackgroundResource(R.drawable.bnt_categoria);
+        botonNuevo.setBackgroundResource(R.drawable.boton_categoria_presionado);
 
         botonSeleccionado = botonNuevo;
 
         String categoria = botonNuevo.getText().toString();
+        ultimaCategoriaSeleccionada = categoria;
+        saveLastSelectedCategory(categoria); // Guardar la categoría seleccionada
         filtrarTareasPorCategoria(categoria);
     }
 
+    private void seleccionarBotonPorCategoria(String categoria) {
+        for (int i = 0; i < linearLayoutCategorias.getChildCount(); i++) {
+            View view = linearLayoutCategorias.getChildAt(i);
+            if (view instanceof Button) {
+                Button button = (Button) view;
+                if (button.getText().toString().equals(categoria)) {
+                    seleccionarBoton(button);
+                    return;
+                }
+            }
+        }
+    }
     private int dpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
     private void agregarBotonTodasLasCategorias() {
         Button button = new Button(requireContext());
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(30, 4, 13, 4);
+        button.setLayoutParams(params);
+
         button.setText("Todas");
-        agregarBotonCategoria("Todas");
-        // Seleccionar el botón "Todas" por defecto si no hay ningún botón seleccionado
-        if (botonSeleccionado == null) {
+        button.setBackgroundResource(R.drawable.bnt_categoria);
+        button.setTextColor(ContextCompat.getColor(requireContext(), R.color.plomoTex));
+        button.setAllCaps(false);
+
+        int paddingHorizontal = dpToPx(14);
+        int paddingVertical = dpToPx(6);
+        button.setPadding(paddingHorizontal, paddingVertical, paddingHorizontal, paddingVertical);
+
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        button.setMinWidth(dpToPx(80));
+        button.setMaxWidth(dpToPx(200));
+
+        button.setOnClickListener(v -> {
+            seleccionarBoton(button);
+            filtrarTareasPorCategoria("Todas");
+        });
+
+        linearLayoutCategorias.addView(button);
+
+        // Solo seleccionar el botón "Todas" si es la última categoría seleccionada
+        if (ultimaCategoriaSeleccionada.equals("Todas")) {
             seleccionarBoton(button);
         }
     }
@@ -576,11 +645,12 @@ public class TareaFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        String lastCategory = getLastSelectedCategory();
+        currentCategoria = lastCategory;
         cargarTareas();
-        cargarCategorias();// Recargar datos solo cuando se regrese al fragmento
-        filtrarTareasPorCategoria(currentCategoria);
         cargarCategorias();
     }
+
 
     private void setUpRecyclerView() {
         RecyclerView rvTareasInfo = rootView.findViewById(R.id.rvTareas);
@@ -737,9 +807,17 @@ public class TareaFragment extends Fragment {
             @Override
             public boolean onQueryTextChange(String queryText) {
                 Log.d(TAG, "onQueryTextChange: Texto cambiado: " + queryText);
+
+                // Usar un Handler para debounce
+                if (searchHandler != null) {
+                    searchHandler.removeCallbacksAndMessages(null);
+                }
+
                 if (queryText.length() >= 3) {
-                    Log.d(TAG, "Realizando búsqueda en tiempo real");
-                    realizarBusqueda(queryText);
+                    searchHandler.postDelayed(() -> {
+                        Log.d(TAG, "Realizando búsqueda en tiempo real");
+                        realizarBusqueda(queryText);
+                    }, 300); // Esperar 300ms antes de realizar la búsqueda
                 } else if (queryText.isEmpty()) {
                     Log.d(TAG, "Texto de búsqueda vacío, restaurando vista normal");
                     currentSearchQuery = "";
@@ -801,37 +879,59 @@ public class TareaFragment extends Fragment {
             Log.e(TAG, "Error: queryText es null");
             return;
         }
+
+        // Evitar búsquedas duplicadas si el texto no ha cambiado
+        if (queryText.equals(currentSearchQuery)) {
+            return;
+        }
+
         currentSearchQuery = queryText.trim();
-        Log.d(TAG, "Iniciando búsqueda con query: '" + currentSearchQuery +
-                "' en categoría: '" + currentCategoria + "'");
+        Log.d(TAG, "Iniciando búsqueda con query: '" + currentSearchQuery + "' en categoría: '" + currentCategoria + "'");
+
+        // Asegurarse de que no haya búsquedas simultáneas
+        if (isLoading) {
+            return;
+        }
 
         showLoading();
         isLoading = true;
-        tareaInfoList.clear();
+
+        // Limpiar la lista y el adaptador antes de la nueva búsqueda
+        tareaInfoList = new ArrayList<>();
         adaptar.actualizarListaTareas(new ArrayList<>());
         hasMoreTareas = true;
 
-        Log.d(TAG, "Estado antes de la búsqueda - isLoading: " + isLoading +
-                ", hasMoreTareas: " + hasMoreTareas);
+        Log.d(TAG, "Estado antes de la búsqueda - isLoading: " + isLoading + ", hasMoreTareas: " + hasMoreTareas);
 
         firestoreManager.searchTareasPaginadas(currentSearchQuery, currentCategoria, true,
                 new FirestoreManager.FirestoreCallback<List<Tarea>>() {
                     @Override
                     public void onSuccess(List<Tarea> result) {
-                        Log.d(TAG, "Búsqueda exitosa. Resultados encontrados: " +
-                                (result != null ? result.size() : 0));
+                        Log.d(TAG, "Búsqueda exitosa. Resultados encontrados: " + (result != null ? result.size() : 0));
+
+                        // Usar un Set para eliminar duplicados basados en el ID de la tarea
+                        Set<String> tareaIds = new HashSet<>();
+                        List<Tarea> resultadosUnicos = new ArrayList<>();
+
+                        if (result != null) {
+                            for (Tarea tarea : result) {
+                                if (tareaIds.add(tarea.getId())) {
+                                    resultadosUnicos.add(tarea);
+                                }
+                            }
+                        }
 
                         hideLoading();
-                        if (result.isEmpty()) {
+                        if (resultadosUnicos.isEmpty()) {
                             hasMoreTareas = false;
                             Log.d(TAG, "No se encontraron resultados para la búsqueda");
                             Toast.makeText(requireContext(),
                                     "No se encontraron tareas que coincidan con la búsqueda",
                                     Toast.LENGTH_SHORT).show();
                         } else {
-                            tareaInfoList.addAll(result);
-                            Log.d(TAG, "Actualizando adapter con " + tareaInfoList.size() + " tareas");
-                            adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+                            tareaInfoList = new ArrayList<>(resultadosUnicos);
+                            Log.d(TAG, "Actualizando adapter con " + tareaInfoList.size() + " tareas únicas");
+                            adaptar.actualizarListaTareas(tareaInfoList);
                         }
                         isLoading = false;
                     }
@@ -847,6 +947,7 @@ public class TareaFragment extends Fragment {
                     }
                 });
     }
+
 
 
 
