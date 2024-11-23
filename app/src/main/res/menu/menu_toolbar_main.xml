@@ -6,20 +6,21 @@
     <item
         android:id="@+id/action_admin_cat"
         android:title="@string/administrar_categor_as"
-        android:orderInCategory="1"
+        android:orderInCategory="2"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_search"
+        android:icon="@drawable/ic_search"
         android:title="@string/buscar"
-        android:orderInCategory="2"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"  />
 
 
     <item
         android:id="@+id/action_tareas_com"
         android:title="@string/tareas_completadas"
-        android:orderInCategory="3"
+        android:orderInCategory="2"
         app:showAsAction="never" />
 
 

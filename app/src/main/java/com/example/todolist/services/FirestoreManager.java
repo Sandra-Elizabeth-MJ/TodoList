@@ -369,6 +369,53 @@ public class FirestoreManager {
                 .addOnFailureListener(callback::onError);
     }
 
+    public void searchTareasPaginadas(String searchQuery, String categoria, boolean reiniciarPaginacion,
+                                      FirestoreCallback<List<Tarea>> callback) {
+        String userId = auth.getCurrentUser().getUid();
+
+        // Reiniciar paginación si es una nueva búsqueda o se solicita explícitamente
+        if (reiniciarPaginacion || !categoria.equals(currentCategoria)) {
+            lastVisible = null;
+            currentCategoria = categoria;
+        }
+
+        // Construir la consulta base
+        Query query = db.collection("user").document(userId)
+                .collection("tareas")
+                .whereEqualTo("completada", false)
+                .orderBy("nombre") // Necesario para búsqueda por nombre
+                .startAt(searchQuery)
+                .endAt(searchQuery + "\uf8ff") // Técnica para búsqueda por prefijo
+                .limit(TAREAS_POR_PAGINA);
+
+        // Agregar filtro por categoría si no es "Todas"
+        if (!categoria.equals("Todas")) {
+            query = query.whereEqualTo("categoria", categoria);
+        }
+
+        // Agregar punto de inicio si no es la primera página
+        if (lastVisible != null) {
+            query = query.startAfter(lastVisible);
+        }
+
+        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            List<Tarea> tareas = new ArrayList<>();
+            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                Tarea tarea = document.toObject(Tarea.class);
+                tarea.setId(document.getId());
+                tareas.add(tarea);
+            }
+
+            // Actualizar el último documento visible
+            if (!queryDocumentSnapshots.isEmpty()) {
+                lastVisible = queryDocumentSnapshots.getDocuments()
+                        .get(queryDocumentSnapshots.size() - 1);
+            }
+
+            callback.onSuccess(tareas);
+        }).addOnFailureListener(callback::onError);
+    }
+
     public boolean isOnline() {
         return isOnline;
     }

@@ -27,13 +27,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -72,6 +72,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class TareaFragment extends Fragment {
+    private static final String TAG = "TareaFragment"; // Tag para los logs
     private Spinner spinnerCategories;
     private CategoriaAdapter spinnerAdapter;
     private List<String> categorias = new ArrayList<>();
@@ -91,6 +92,9 @@ public class TareaFragment extends Fragment {
     private boolean hasMoreTareas = true;
     private ProgressBar progressBar;
     private String currentCategoria; // Categoría por defecto
+
+    private SearchView searchView;
+    private String currentSearchQuery = "";
 
     private MediaPlayer mediaPlayer;
     @Override
@@ -134,43 +138,93 @@ public class TareaFragment extends Fragment {
         hasMoreTareas = true;
         cargarTareasPaginadas(true); // true para reiniciar paginación
     }
+    // Modificar el método cargarTareasPaginadas para incluir la búsqueda
     private void cargarTareasPaginadas(boolean reiniciarPaginacion) {
-        if (isLoading || !hasMoreTareas) return;
+        if (isLoading || !hasMoreTareas) {
+            Log.d(TAG, "Carga de tareas ignorada - isLoading: " + isLoading +
+                    ", hasMoreTareas: " + hasMoreTareas);
+            return;
+        }
+
+        Log.d(TAG, "Iniciando carga paginada - reiniciarPaginacion: " + reiniciarPaginacion +
+                ", búsqueda activa: " + !currentSearchQuery.isEmpty());
 
         showLoading();
         isLoading = true;
 
-        firestoreManager.getTareasPaginadas(currentCategoria, reiniciarPaginacion,
-                new FirestoreManager.FirestoreCallback<List<Tarea>>() {
-                    @Override
-                    public void onSuccess(List<Tarea> result) {
-                        hideLoading();
-                        if (result.isEmpty()) {
-                            hasMoreTareas = false;
-                            if (reiniciarPaginacion && tareaInfoList.isEmpty()) {
-                                Toast.makeText(requireContext(),
-                                        "No hay tareas en esta categoría",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            if (reiniciarPaginacion) {
-                                tareaInfoList.clear();
-                            }
-                            tareaInfoList.addAll(result);
-                            adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+        if (!currentSearchQuery.isEmpty()) {
+            Log.d(TAG, "Ejecutando búsqueda paginada con query: '" + currentSearchQuery + "'");
+            firestoreManager.searchTareasPaginadas(currentSearchQuery, currentCategoria, reiniciarPaginacion,
+                    new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+                        @Override
+                        public void onSuccess(List<Tarea> result) {
+                            Log.d(TAG, "Búsqueda paginada exitosa");
+                            procesarResultadosPaginacion(result, reiniciarPaginacion);
                         }
-                        isLoading = false;
-                    }
 
-                    @Override
-                    public void onError(Exception e) {
-                        hideLoading();
-                        isLoading = false;
-                        Toast.makeText(requireContext(),
-                                "Error al cargar tareas: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e(TAG, "Error en búsqueda paginada: " + e.getMessage(), e);
+                            manejarErrorPaginacion(e);
+                        }
+                    });
+        } else {
+            Log.d(TAG, "Ejecutando carga normal de tareas");
+            firestoreManager.getTareasPaginadas(currentCategoria, reiniciarPaginacion,
+                    new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+                        @Override
+                        public void onSuccess(List<Tarea> result) {
+                            Log.d(TAG, "Carga normal de tareas exitosa");
+                            procesarResultadosPaginacion(result, reiniciarPaginacion);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e(TAG, "Error en carga normal: " + e.getMessage(), e);
+                            manejarErrorPaginacion(e);
+                        }
+                    });
+        }
+    }
+
+    private void procesarResultadosPaginacion(List<Tarea> result, boolean reiniciarPaginacion) {
+        try {
+            Log.d(TAG, "Procesando resultados de paginación - tamaño: " +
+                    (result != null ? result.size() : 0));
+
+            hideLoading();
+            if (result.isEmpty()) {
+                hasMoreTareas = false;
+                if (reiniciarPaginacion && tareaInfoList.isEmpty()) {
+                    Log.d(TAG, "No hay tareas en esta categoría");
+                    Toast.makeText(requireContext(),
+                            "No hay tareas en esta categoría",
+                            Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                if (reiniciarPaginacion) {
+                    Log.d(TAG, "Limpiando lista existente antes de agregar nuevos resultados");
+                    tareaInfoList.clear();
+                }
+                tareaInfoList.addAll(result);
+                Log.d(TAG, "Lista actualizada - total de tareas: " + tareaInfoList.size());
+                adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+            }
+            isLoading = false;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error al procesar resultados de paginación: " + e.getMessage(), e);
+            manejarErrorPaginacion(e);
+        }
+    }
+
+    private void manejarErrorPaginacion(Exception e) {
+        Log.e(TAG, "Error en paginación: " + e.getMessage(), e);
+        hideLoading();
+        isLoading = false;
+        Toast.makeText(requireContext(),
+                "Error al cargar tareas: " + e.getMessage(),
+                Toast.LENGTH_SHORT).show();
     }
 
     private void showLoading() {
@@ -657,8 +711,61 @@ public class TareaFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         // Inflar el menú
+//        inflater.inflate(R.menu.menu_toolbar_main, menu);
+//        super.onCreateOptionsMenu(menu, inflater);
+        // Inflar el menú
         inflater.inflate(R.menu.menu_toolbar_main, menu);
+
+        // Obtener el SearchView correctamente
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchView = (SearchView) searchItem.getActionView();
+
+        // Configurar el SearchView
+        searchView.setQueryHint("Buscar tareas...");
+        searchView.setIconifiedByDefault(true);
+
+        // Manejar eventos del SearchView
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String queryText) {
+                Log.d(TAG, "onQueryTextSubmit: Búsqueda enviada: " + queryText);
+                realizarBusqueda(queryText);
+                searchView.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String queryText) {
+                Log.d(TAG, "onQueryTextChange: Texto cambiado: " + queryText);
+                if (queryText.length() >= 3) {
+                    Log.d(TAG, "Realizando búsqueda en tiempo real");
+                    realizarBusqueda(queryText);
+                } else if (queryText.isEmpty()) {
+                    Log.d(TAG, "Texto de búsqueda vacío, restaurando vista normal");
+                    currentSearchQuery = "";
+                    cargarTareas();
+                }
+                return true;
+            }
+        });
+
+        // Manejar el cierre del SearchView
+        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                currentSearchQuery = "";
+                cargarTareas();
+                return true;
+            }
+        });
+
         super.onCreateOptionsMenu(menu, inflater);
+
     }
 
     @Override
@@ -673,11 +780,13 @@ public class TareaFragment extends Fragment {
             Toast.makeText(getActivity(), "Administrar categorías", Toast.LENGTH_SHORT).show();
             return true;
 
-        } else if (itemId == R.id.action_search) {
-            Toast.makeText(getActivity(), "Buscar", Toast.LENGTH_SHORT).show();
-            return true;
-
-        } else if (itemId == R.id.action_tareas_com) {
+        }
+//        else if (itemId == R.id.action_search) {
+//            Toast.makeText(getActivity(), "Buscar", Toast.LENGTH_SHORT).show();
+//            return true;
+//
+//        }
+        else if (itemId == R.id.action_tareas_com) {
             // Redirige a la actividad de tareas completadas
             intent = new Intent(getActivity(), ActivityTareaCompletada.class);
             startActivity(intent);
@@ -687,6 +796,59 @@ public class TareaFragment extends Fragment {
 
         return super.onOptionsItemSelected(item);
     }
+    private void realizarBusqueda(String queryText) {
+        if (queryText == null) {
+            Log.e(TAG, "Error: queryText es null");
+            return;
+        }
+        currentSearchQuery = queryText.trim();
+        Log.d(TAG, "Iniciando búsqueda con query: '" + currentSearchQuery +
+                "' en categoría: '" + currentCategoria + "'");
+
+        showLoading();
+        isLoading = true;
+        tareaInfoList.clear();
+        adaptar.actualizarListaTareas(new ArrayList<>());
+        hasMoreTareas = true;
+
+        Log.d(TAG, "Estado antes de la búsqueda - isLoading: " + isLoading +
+                ", hasMoreTareas: " + hasMoreTareas);
+
+        firestoreManager.searchTareasPaginadas(currentSearchQuery, currentCategoria, true,
+                new FirestoreManager.FirestoreCallback<List<Tarea>>() {
+                    @Override
+                    public void onSuccess(List<Tarea> result) {
+                        Log.d(TAG, "Búsqueda exitosa. Resultados encontrados: " +
+                                (result != null ? result.size() : 0));
+
+                        hideLoading();
+                        if (result.isEmpty()) {
+                            hasMoreTareas = false;
+                            Log.d(TAG, "No se encontraron resultados para la búsqueda");
+                            Toast.makeText(requireContext(),
+                                    "No se encontraron tareas que coincidan con la búsqueda",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            tareaInfoList.addAll(result);
+                            Log.d(TAG, "Actualizando adapter con " + tareaInfoList.size() + " tareas");
+                            adaptar.actualizarListaTareas(new ArrayList<>(tareaInfoList));
+                        }
+                        isLoading = false;
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Log.e(TAG, "Error en la búsqueda: " + e.getMessage(), e);
+                        hideLoading();
+                        isLoading = false;
+                        Toast.makeText(requireContext(),
+                                "Error al buscar tareas: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+
 
     @Override
     public void onDestroy() {
