@@ -36,8 +36,9 @@ public class ActivityLogin extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();// Inicializa Firebase Authentication
 
+        // Vinculamos las variables con los elementos del diseño XML
         loginEmail = findViewById(R.id.login_email);
         loginPassword = findViewById(R.id.login_password);
         loginButton = findViewById(R.id.login_button);
@@ -77,6 +78,7 @@ public class ActivityLogin extends AppCompatActivity {
                 loginPassword.setSelection(loginPassword.getText().length());
             }
         });
+        //Texto de redireccion
         signupRedirectText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,6 +90,7 @@ public class ActivityLogin extends AppCompatActivity {
         });
     }
     private void loginUser(String emailuser, String contrauser) {
+        //Método de Firebase que intenta autenticar
         auth.signInWithEmailAndPassword(emailuser, contrauser).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
@@ -117,7 +120,4 @@ public class ActivityLogin extends AppCompatActivity {
             finish(); // Finaliza esta actividad para que no pueda regresar a la pantalla de login
         }
     }
-
-
-
 }

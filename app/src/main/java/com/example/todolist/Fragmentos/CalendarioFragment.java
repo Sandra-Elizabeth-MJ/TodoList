@@ -191,16 +191,12 @@ public class CalendarioFragment extends Fragment {
 
         recyclerView.setAdapter(adapter);
     }
-   
-
-    
 
     @Override
     public void onResume() {
         super.onResume();
         obtenerTareas();
     }
-
     @Override
     public void onDestroy() {
         super.onDestroy();

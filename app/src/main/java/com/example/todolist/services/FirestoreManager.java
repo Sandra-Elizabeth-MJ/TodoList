@@ -39,34 +39,38 @@ public class FirestoreManager {
     private static final String TAG = "FirestoreManager";
 
 
-    // Para controlar la categoría actual
+    // obtener una lista de tareas
     public void getTareas(FirestoreCallback<List<Tarea>> callback) {
         String userId = auth.getCurrentUser().getUid();
 
         ListenerRegistration listener = db.collection("user").document(userId)
                 .collection("tareas")
                 .whereEqualTo("completada", false) // Añadir este filtro
+
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
                         callback.onError(e);
                         return;
                     }
                     List<Tarea> tareas = new ArrayList<>();
+                    //queryDocumentSnapshots: Contiene los documentos que coinciden con la consulta.
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Tarea tarea = document.toObject(Tarea.class);
                         tarea.setId(document.getId());
                         tareas.add(tarea);
                     }
-                    callback.onSuccess(tareas);
+                    callback.onSuccess(tareas);// le pasa la lista de tareas como argumento
                 });
-        listeners.add(listener);
+        listeners.add(listener);//Guarda el listener en una lista (listeners) para poder detenerlo más tarde si es necesario.
     }
-    // Nuevo método para cargar tareas progresivamente
+
+    // Método para cargar tareas progresivamente
     public void getTareasPaginadas(String categoria, boolean reiniciarPaginacion, FirestoreCallback<List<Tarea>> callback) {
         String userId = auth.getCurrentUser().getUid();
 
         // Reiniciar paginación si es una nueva categoría o se solicita explícitamente
         if (reiniciarPaginacion || !categoria.equals(currentCategoria)) {
+            //Se reinicia. Este campo guarda el último documento visible de la página anterior.
             lastVisible = null;
             currentCategoria = categoria;
         }
@@ -106,14 +110,13 @@ public class FirestoreManager {
         }).addOnFailureListener(callback::onError);
     }
 
-
     private FirestoreManager(Context context) {
         this.context = context.getApplicationContext();
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         setupNetworkCallback();
     }
-
+   //Se asegura de que solo haya una instancia de FirestoreManager en toda la aplicación.
     public static synchronized FirestoreManager getInstance(Context context) {
         if (instance == null) {
             instance = new FirestoreManager(context);
@@ -140,9 +143,7 @@ public class FirestoreManager {
             }
         });
     }
-
-
-
+    //// Crea un nuevo documento en la colección "tareas" del usuario
     public void createTarea(Tarea tarea, FirestoreCallback<String> callback) {
         String userId = auth.getCurrentUser().getUid();
         DocumentReference newTareaRef = db.collection("user").document(userId)
@@ -258,6 +259,7 @@ public class FirestoreManager {
         }
         listeners.clear();
     }
+    //Metodo eliminar tareas completadas
     public void deleteAllCompletedTasks(FirestoreCallback<Void> callback) {
         String userId = auth.getCurrentUser().getUid();
         db.collection("user").document(userId)
@@ -403,7 +405,7 @@ public class FirestoreManager {
                 .collection("tareas")
                 .whereEqualTo("completada", false)
                 .orderBy("nombre") // Necesario para búsqueda por nombre
-                .startAt(searchQuery)
+                .startAt(searchQuery)//Marca el inicio del rango de búsqueda.
                 .endAt(searchQuery + "\uf8ff") // Técnica para búsqueda por prefijo
                 .limit(TAREAS_POR_PAGINA);
 
@@ -438,7 +440,7 @@ public class FirestoreManager {
     public boolean isOnline() {
         return isOnline;
     }
-
+    //interfaz personalizada para manejar resultados asíncronos
     public interface FirestoreCallback<T> {
         void onSuccess(T result);
         void onError(Exception e);

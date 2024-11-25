@@ -12,14 +12,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        // Verifica si la actividad está siendo creada por primera vez
         if (savedInstanceState == null) {
+            // Inicia una transacción para agregar el fragmento inicial
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new TareaFragment())
                     .commit();
         }
-
+        // Encuentra el componente BottomNavigationView del diseño
         BottomNavigationView navView = findViewById(R.id.nav_view);
+        
+        // Configura un listener para manejar los clics en los elementos del BottomNavigationView
         navView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             int itemId = item.getItemId();

@@ -95,7 +95,7 @@ public class TareaFragment extends Fragment {
     private boolean hasMoreTareas = true;
     private ProgressBar progressBar;
     private String currentCategoria; // Categoría por defecto
-
+//variables para la busqueda
     private SearchView searchView;
     private String currentSearchQuery = "";
 
@@ -105,6 +105,7 @@ public class TareaFragment extends Fragment {
     private static final String KEY_LAST_CATEGORY = "lastSelectedCategory";
     // Agregar esta variable al inicio de la clase
     private Handler searchHandler = new Handler(Looper.getMainLooper());
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -401,7 +402,7 @@ public class TareaFragment extends Fragment {
             dialog.show();
         });
     }
-
+   //Dilog para crear nueva categoria
     private void mostrarDialogoNuevaCategoria() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Crear Nueva Categoría");
@@ -792,9 +793,6 @@ public class TareaFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         // Inflar el menú
-//        inflater.inflate(R.menu.menu_toolbar_main, menu);
-//        super.onCreateOptionsMenu(menu, inflater);
-        // Inflar el menú
         inflater.inflate(R.menu.menu_toolbar_main, menu);
 
         // Obtener el SearchView correctamente
@@ -869,13 +867,7 @@ public class TareaFragment extends Fragment {
             Toast.makeText(getActivity(), "Administrar categorías", Toast.LENGTH_SHORT).show();
             return true;
 
-        }
-//        else if (itemId == R.id.action_search) {
-//            Toast.makeText(getActivity(), "Buscar", Toast.LENGTH_SHORT).show();
-//            return true;
-//
-//        }
-        else if (itemId == R.id.action_tareas_com) {
+        }else if (itemId == R.id.action_tareas_com) {
             // Redirige a la actividad de tareas completadas
             intent = new Intent(getActivity(), ActivityTareaCompletada.class);
             startActivity(intent);
@@ -958,9 +950,6 @@ public class TareaFragment extends Fragment {
                     }
                 });
     }
-
-
-
 
     @Override
     public void onDestroy() {

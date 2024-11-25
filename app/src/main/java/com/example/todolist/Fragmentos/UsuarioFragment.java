@@ -124,12 +124,13 @@ public class UsuarioFragment extends Fragment {
             String userId = currentUser.getUid();
 
             // Obtener datos del usuario desde Firestore
-            FirebaseFirestore.getInstance()
+            FirebaseFirestore.getInstance()// Obtiene una instancia de la base de datos Firestore.
                     .collection("user")
                     .document(userId)
-                    .get()
+                    .get()// Realiza una consulta para obtener el contenido del documento.
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
+                            //Convierte el contenido del documento en una instancia de la clase Usuario.
                             Usuario usuario = documentSnapshot.toObject(Usuario.class);
                             if (usuario != null) {
                                 tvNombre.setText(usuario.getNombre());
@@ -144,7 +145,7 @@ public class UsuarioFragment extends Fragment {
                     });
         }
     }
-
+//Editar usuario
     private void setupEditButton() {
         btnEditProfile.setOnClickListener(v -> showEditDialog());
     }
@@ -182,14 +183,15 @@ public class UsuarioFragment extends Fragment {
         if (currentUser != null) {
             String userId = currentUser.getUid();
 
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("nombre", nombre);
+            Map<String, Object> updates = new HashMap<>();//Crea un mapa clave-valor que representa los datos a actualizar en Firestore.
+            updates.put("nombre", nombre);//Asigna el valor del parámetro
             updates.put("apellidos", apellidos);
-
+            //Usa update para modificar los valores de nombre y apellidos.
             FirebaseFirestore.getInstance()
                     .collection("user")
                     .document(userId)
-                    .update(updates)
+                    .update(updates)//Actualiza los campos especificados en el mapa updates (en este caso, "nombre" y "apellidos").
+                    //Si la actualización es exitosa se actualizan los campos
                     .addOnSuccessListener(aVoid -> {
                         tvNombre.setText(nombre);
                         tvApellidos.setText(apellidos);
@@ -201,9 +203,6 @@ public class UsuarioFragment extends Fragment {
                     });
         }
     }
-
-
-
 
     @Override
     public void onResume() {

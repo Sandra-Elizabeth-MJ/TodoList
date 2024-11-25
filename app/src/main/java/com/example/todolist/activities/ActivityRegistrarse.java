@@ -36,7 +36,7 @@ public class ActivityRegistrarse extends AppCompatActivity {
      TextView loginRedirectText;
      ImageView passwordShowRegis;
      boolean passwordVisible = false; // Estado de visibilidad
-     FirebaseFirestore mfirestore;
+     FirebaseFirestore mfirestore;// Instancia para interactuar con la base de datos en Firebase Firestore.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +51,14 @@ public class ActivityRegistrarse extends AppCompatActivity {
         loginRedirectText = findViewById(R.id.loginRedirectText);
         passwordShowRegis = findViewById(R.id.registro_show_pass);
 
-        //Instanciara para ver datos personales
+        //Inicialisamos servicios
         auth = FirebaseAuth.getInstance();
         mfirestore = FirebaseFirestore.getInstance();
 
             signupButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    //Recupera los valores ingresados por el usuario en los campos de texto y los almacena en variables.
                     String nombre =signupNombre.getText().toString().trim();
                     String apellidos = signupApellidos.getText().toString().trim();
                     String email = signupEmail.getText().toString().trim();
@@ -104,6 +105,7 @@ public class ActivityRegistrarse extends AppCompatActivity {
 
     }
     private void registreUser(String email, String password, String nombre, String apellidos) {
+        //Llama a createUserWithEmailAndPassword de Firebase para crear un nuevo usuario con el correo y contraseña.
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {

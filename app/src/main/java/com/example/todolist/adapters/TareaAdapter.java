@@ -87,7 +87,7 @@ public class TareaAdapter extends RecyclerView.Adapter<TareaAdapter.TareaViewHol
     public void onBindViewHolder(@NonNull TareaViewHolder holder, int position) {
         Tarea tarea = tareas.get(position);
         //Log que muestra la carga de tareas
-        Log.d("TareaAdapter", "Tarea: " + tarea.getNombre());
+        Log.d("TareaAdapter", "Tarea: " + tarea.getNombre()+": " +tarea.getId());
         holder.bind(tarea);
 
         // Establecer el estado del RadioButton
