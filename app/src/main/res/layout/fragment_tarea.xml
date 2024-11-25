@@ -13,10 +13,11 @@
         android:background="@color/plomoA1"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        app:menu="@menu/menu_toolbar_main"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/menu_toolbar_main">
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -27,7 +28,7 @@
                 android:id="@+id/linearLayoutCategorias"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"/>
+                android:orientation="horizontal" />
         </HorizontalScrollView>
     </androidx.appcompat.widget.Toolbar>
 

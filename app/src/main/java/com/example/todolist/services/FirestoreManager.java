@@ -318,17 +318,36 @@ public class FirestoreManager {
     }
     public void deleteCategoria(String categoria, FirestoreCallback<Void> callback) {
         String userId = auth.getCurrentUser().getUid();
+
+        // Primero actualizamos las tareas de la categoría a "Todas"
         db.collection("user").document(userId)
-                .collection("categorias")
-                .whereEqualTo("nombre", categoria)
+                .collection("tareas")
+                .whereEqualTo("categoria", categoria)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(taskSnapshots -> {
                     WriteBatch batch = db.batch();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        batch.delete(document.getReference());
+
+                    // Actualizar todas las tareas a categoría "Todas"
+                    for (QueryDocumentSnapshot taskDoc : taskSnapshots) {
+                        batch.update(taskDoc.getReference(), "categoria", "Todas");
                     }
-                    batch.commit()
-                            .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+
+                    // Luego obtenemos y eliminamos la categoría
+                    db.collection("user").document(userId)
+                            .collection("categorias")
+                            .whereEqualTo("nombre", categoria)
+                            .get()
+                            .addOnSuccessListener(categorySnapshots -> {
+                                // Añadir la eliminación de la categoría al mismo batch
+                                for (QueryDocumentSnapshot document : categorySnapshots) {
+                                    batch.delete(document.getReference());
+                                }
+
+                                // Ejecutar todas las operaciones en el batch
+                                batch.commit()
+                                        .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                                        .addOnFailureListener(callback::onError);
+                            })
                             .addOnFailureListener(callback::onError);
                 })
                 .addOnFailureListener(callback::onError);

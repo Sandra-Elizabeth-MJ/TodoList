@@ -118,8 +118,12 @@ public class TareaFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         userId = auth.getCurrentUser().getUid();
 
-        // Cargar la última categoría seleccionada desde SharedPreferences
+        // Establecer "Todas" como valor por defecto si no hay última categoría guardada
         ultimaCategoriaSeleccionada = getLastSelectedCategory();
+        if (ultimaCategoriaSeleccionada.isEmpty()) {
+            ultimaCategoriaSeleccionada = "Todas";
+            saveLastSelectedCategory("Todas");
+        }
         currentCategoria = ultimaCategoriaSeleccionada;
 
         // Inicializar variables de paginación
@@ -459,6 +463,10 @@ public class TareaFragment extends Fragment {
             @Override
             public void onSuccess(List<String> result) {
                 categorias.clear();
+                // Siempre añadimos "Todas" como primera opción
+                categorias.add("Ninguna Categoria");
+
+                // Añadimos el resto de categorías
                 categorias.addAll(result);
                 categorias.add("Crear nueva categoría");
                 spinnerAdapter.notifyDataSetChanged();
@@ -470,22 +478,25 @@ public class TareaFragment extends Fragment {
                 agregarBotonTodasLasCategorias();
 
                 // Agregar el resto de categorías
-                for (String categoria : categorias) {
-                    if (!categoria.equals("Crear nueva categoría")) {
-                        agregarBotonCategoria(categoria);
-                    }
+                for (String categoria : result) {
+                    agregarBotonCategoria(categoria);
                 }
 
-                // Seleccionar la última categoría guardada
+                // Seleccionar la última categoría guardada o "Todas" por defecto
                 new Handler().postDelayed(() -> {
                     String lastCategory = getLastSelectedCategory();
+                    if (lastCategory.isEmpty()) {
+                        lastCategory = "Todas";
+                    }
                     seleccionarBotonPorCategoria(lastCategory);
                 }, 100);
             }
 
             @Override
             public void onError(Exception e) {
-                Toast.makeText(requireActivity(), "Error al cargar categorías: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireActivity(),
+                        "Error al cargar categorías: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -113,7 +113,7 @@ public class CategoriaListaAdapter extends RecyclerView.Adapter<CategoriaListaAd
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("Eliminar categoría")
                     .setMessage("¿Estás seguro de que quieres eliminar esta categoría? " +
-                            "Las tareas asociadas se moverán a 'Sin categoría'")
+                            "Las tareas asociadas se moverán a 'Todas'")
                     .setPositiveButton("Eliminar", (dialog, which) -> {
                         firestoreManager.deleteCategoria(categoria,
                                 new FirestoreManager.FirestoreCallback<Void>() {
@@ -138,7 +138,6 @@ public class CategoriaListaAdapter extends RecyclerView.Adapter<CategoriaListaAd
                     .show();
         });
     }
-
 
     @Override
     public int getItemCount() {

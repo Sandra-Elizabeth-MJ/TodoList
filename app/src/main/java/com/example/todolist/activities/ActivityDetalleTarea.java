@@ -93,14 +93,22 @@ public class ActivityDetalleTarea extends AppCompatActivity {
         // Initialize spinner adapter
         spinnerAdapter = new CategoriaAdapter(this, categorias);
         spinnerCategories.setAdapter(spinnerAdapter);
+        categorias.add("Ninguna Categoria");
         categorias.add("Crear nueva categoría");
-
         // Configure spinner listener
         spinnerCategories.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == categorias.size() - 1) {
+                String selectedItem = parent.getItemAtPosition(position).toString();
+                if (selectedItem.equals("Crear nueva categoría")) {
                     mostrarDialogoNuevaCategoria();
+                    // Si no hay categorías, volver a seleccionar "Todas"
+                    if (categorias.size() <= 2) {
+                        spinnerCategories.setSelection(0);
+                    } else {
+                        // Si hay categorías, volver a la selección anterior
+                        spinnerCategories.setSelection(position - 1);
+                    }
                 }
             }
 
@@ -141,7 +149,15 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             @Override
             public void onSuccess(List<String> result) {
                 categorias.clear();
-                categorias.addAll(result);
+                // Siempre añadimos "Todas" como primera opción
+                categorias.add("Ninguna Categoria");
+
+                // Añadimos las categorías existentes
+                if (!result.isEmpty()) {
+                    categorias.addAll(result);
+                }
+
+                // Añadimos la opción para crear nueva categoría
                 categorias.add("Crear nueva categoría");
                 spinnerAdapter.notifyDataSetChanged();
 
@@ -166,9 +182,17 @@ public class ActivityDetalleTarea extends AppCompatActivity {
                         fechavencimiento_tv.setText(tarea.getFecha());
                         hora_tv.setText(tarea.getHora());
 
-                        int posicion = categorias.indexOf(tarea.getCategoria());
-                        if (posicion != -1) {
-                            spinnerCategories.setSelection(posicion);
+                        // Si la tarea no tiene categoría, seleccionamos "Todas"
+                        String categoria = tarea.getCategoria();
+                        if (categoria == null || categoria.isEmpty()) {
+                            spinnerCategories.setSelection(0);
+                        } else {
+                            int posicion = categorias.indexOf(categoria);
+                            if (posicion != -1) {
+                                spinnerCategories.setSelection(posicion);
+                            } else {
+                                spinnerCategories.setSelection(0);
+                            }
                         }
                         break;
                     }
@@ -181,12 +205,16 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             }
         });
     }
+
     private void actualizarTareaEnFirestore() {
         String categoriaSeleccionada = spinnerCategories.getSelectedItem().toString();
         if (categoriaSeleccionada.equals("Crear nueva categoría")) {
             Toast.makeText(this, "Por favor, selecciona una categoría válida", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // Si la categoría seleccionada es "Todas", guardamos la tarea sin categoría
+        String categoriaFinal = categoriaSeleccionada.equals("Ninguna Categoria") ? "" : categoriaSeleccionada;
 
         String nombre = tvDetailInfo.getText().toString();
         String fecha = fechavencimiento_tv.getText().toString();
@@ -197,7 +225,7 @@ public class ActivityDetalleTarea extends AppCompatActivity {
             return;
         }
 
-        Tarea tareaActualizada = new Tarea(tareaId, nombre, fecha, hora, categoriaSeleccionada, userId);
+        Tarea tareaActualizada = new Tarea(tareaId, nombre, fecha, hora, categoriaFinal, userId);
 
         firestoreManager.updateTarea(tareaActualizada, new FirestoreManager.FirestoreCallback<Void>() {
             @Override
