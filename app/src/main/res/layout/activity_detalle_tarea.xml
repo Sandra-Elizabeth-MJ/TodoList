@@ -47,8 +47,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp"
+        android:padding="17dp"
         android:layout_marginTop="50dp">
+
+        <!-- Agregar Subtarea -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/iconAddSubtask"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_add"
+                android:contentDescription="@string/agregar_subtarea"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/agregar_subtarea"
+                android:textSize="16sp"
+                android:textColor="@color/azulA1"/>
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="2dp"
@@ -57,10 +81,9 @@
 
         <!-- Fecha de Vencimiento -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_gravity="center"
             android:gravity="center_vertical"
             android:layout_marginTop="17dp">
 
@@ -70,30 +93,27 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_calendario_tarea"
                 android:contentDescription="@string/fecha_de_vencimiento"
-                android:layout_marginEnd="4dp"/>
+                android:layout_marginEnd="8dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/fecha_de_vencimiento"
-                android:textStyle="bold"
                 android:textColor="#525356"
-                android:textSize="18sp"/>
+                android:textSize="16sp"/>
 
-
+            <TextView
+                android:id="@+id/fechavencimiento_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="65dp"
+                android:background="@drawable/boton_categoria"
+                android:padding="4dp"
+                android:textAlignment="center"
+                android:hint="@string/dd_mm_aaaa"
+                android:textColor="#525356"
+                android:textSize="15sp"/>
         </LinearLayout>
-        <TextView
-            android:id="@+id/fechavencimiento_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:layout_gravity="center"
-            android:background="@drawable/boton_categoria"
-            android:padding="6dp"
-            android:textAlignment="center"
-            android:hint="@string/dd_mm_aaaa"
-            android:textColor="#525356"
-            android:textSize="17sp"/>
 
         <View
             android:layout_width="match_parent"
@@ -103,10 +123,10 @@
 
         <!-- Hora y Recordatorio -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-           android:layout_gravity="center"
+            android:gravity="center_vertical"
             android:layout_marginTop="17dp">
 
             <ImageView
@@ -115,30 +135,28 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_time"
                 android:contentDescription="@string/hora_y_recordatorio"
-                android:layout_marginEnd="4dp"/>
+                android:layout_marginEnd="8dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/hora_y_recordatorio"
-                android:textStyle="bold"
                 android:textColor="#525356"
-                android:textSize="18sp"/>
+                android:textSize="16sp"/>
 
-
+            <TextView
+                android:id="@+id/hora_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="85dp"
+                android:background="@drawable/boton_categoria"
+                android:padding="4dp"
+                android:textAlignment="center"
+                android:hint="@string/hh_mm_tt"
+                android:textColor="#525356"
+                android:textSize="15sp"/>
         </LinearLayout>
-        <TextView
-            android:id="@+id/hora_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:layout_gravity="center"
-            android:background="@drawable/boton_categoria"
-            android:padding="6dp"
-            android:textAlignment="center"
-            android:hint="@string/hh_mm_tt"
-            android:textColor="#525356"
-            android:textSize="17sp"/>
+
 
         <View
             android:layout_width="match_parent"
@@ -146,9 +164,67 @@
             android:background="@color/splash"
             android:layout_marginTop="20dp"/>
 
+        <!-- Notas -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="17dp">
+
+            <ImageView
+                android:id="@+id/iconNotas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_tareas"
+                android:contentDescription="@string/notas"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/notas"
+                android:textColor="#525356"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
+
+        <!-- Archivo Adjunto -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="17dp">
+
+            <ImageView
+                android:id="@+id/iconArchiAd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_add_archivo"
+                android:contentDescription="@string/adjunto_archivo"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/adjunto_archivo"
+                android:textColor="#525356"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/splash"
+            android:layout_marginTop="20dp"/>
 
     </LinearLayout>
-
     <!-- Botón flotante -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
